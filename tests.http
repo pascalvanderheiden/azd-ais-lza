@@ -1,0 +1,38 @@
+@apimName = <your-api-management-name>
+@apiPath = openai
+@azureOpenAIDeploymentId = gpt-35-turbo
+@azureOpenAIApiVersion = 2023-03-15-preview
+@prompt = "You are a helpful assistant."
+@stream = false
+@subscriptionKeyMarketing = <your-marketing-subscription-key>
+@subscriptionKeyFinance = <your-finance-subscription-key>
+
+### Test Azure API Management endpoint with OpenAI backend, with Marketing subscription key
+POST https://{{apimName}}.azure-api.net/{{apiPath}}/deployments/{{azureOpenAIDeploymentId}}/chat/completions?api-version={{azureOpenAIApiVersion}}
+Content-Type: application/json
+api-key: {{subscriptionKeyMarketing}}
+
+{
+    "messages": [
+        {
+            "role": "user",
+            "content": {{prompt}}
+        }
+    ],
+    "stream": {{stream}}
+}
+
+### Test Azure API Management endpoint with OpenAI backend, with Finance subscription key
+POST https://{{apimName}}.azure-api.net/{{apiPath}}/deployments/{{azureOpenAIDeploymentId}}/chat/completions?api-version={{azureOpenAIApiVersion}}
+Content-Type: application/json
+api-key: {{subscriptionKeyFinance}}
+
+{
+    "messages": [
+        {
+            "role": "user",
+            "content": {{prompt}}
+        }
+    ],
+    "stream": {{stream}}
+}
