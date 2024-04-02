@@ -1,3 +1,21 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
 
+# This is an example starter azure.yaml file containing several example services in comments below.
+# Make changes as needed to describe your application setup.
+# To learn more about the azure.yaml file, visit https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/azd-schema
+
+# Name of the application.
 name: azd-ais-lza
+metadata:
+  template: azd-ais-lza@1.0.0
+   
+hooks:
+  preprovision: #determine "MY_IP" and write to .env file | whitelist IP during deployment
+    posix:  
+      shell: sh
+      run: ./scripts/set-env.sh
+      interactive: true
+    windows:
+      shell: pwsh
+      run: ./scripts/set-env.ps1
+      interactive: true

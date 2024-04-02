@@ -81,23 +81,12 @@ resource globalPolicies 'Microsoft.ApiManagement/service/policies@2023-03-01-pre
   }
 }
 
-resource apiFinanceSubscription 'Microsoft.ApiManagement/service/subscriptions@2023-03-01-preview' = {
+resource apiConsumerSubscription 'Microsoft.ApiManagement/service/subscriptions@2023-03-01-preview' = {
   parent: apimService
-  name: 'finance-dept-subscription'
+  name: 'consumer-subscription'
   properties: {
     scope: '/apis'
-    displayName: 'Finance'
-    state: 'active'
-    allowTracing: true
-  }
-}
-
-resource apiMarketingSubscription 'Microsoft.ApiManagement/service/subscriptions@2023-03-01-preview' = {
-  parent: apimService
-  name: 'marketing-dept-subscription'
-  properties: {
-    scope: '/apis'
-    displayName: 'Marketing'
+    displayName: 'Consumer'
     state: 'active'
     allowTracing: true
   }

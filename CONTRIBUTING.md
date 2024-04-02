@@ -43,12 +43,12 @@ If your issue appears to be a bug, and hasn't been reported, open a new issue. H
 * **Related Issues** - has a similar issue been reported before?
 * **Suggest a Fix** - if you can't fix the bug yourself, perhaps you can point to what might be causing the problem (line of code or commit)
 
-You can file new issues by providing the above information at the corresponding repository's issues link: https://github.com/Azure/enterprise-azureai/issues/new].
+You can file new issues by providing the above information at the corresponding repository's issues link: https://github.com/pascalvanderheiden/azd-ais-lza/issues/new].
 
 ### <a name="submit-pr"></a> Submitting a Pull Request (PR)
 Before you submit your Pull Request (PR) consider the following guidelines:
 
-* Search the repository (https://github.com/Azure/enterprise-azureai/pulls) for an open or closed PR that relates to your submission. You don't want to duplicate effort.
+* Search the repository (https://github.com/pascalvanderheiden/azd-ais-lza/pulls) for an open or closed PR that relates to your submission. You don't want to duplicate effort.
 * Make your changes in a new git fork
 * Follow [Code style conventions](#style)
 * [Run the tests](#tests) (and write new ones, if needed)
@@ -61,8 +61,8 @@ Before you submit your Pull Request (PR) consider the following guidelines:
 
 Use the provided devcontainer to set up a development environment or a GitHub Codespace.
 
-[![Open in GitHub Codespaces](https://img.shields.io/static/v1?style=for-the-badge&label=GitHub+Codespaces&message=Open&color=lightgrey&logo=github)](https://codespaces.new/Azure/enterprise-azureai)
-[![Open in Dev Container](https://img.shields.io/static/v1?style=for-the-badge&label=Dev+Container&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/Azure/enterprise-azureai)
+[![Open in GitHub Codespaces](https://img.shields.io/static/v1?style=for-the-badge&label=GitHub+Codespaces&message=Open&color=lightgrey&logo=github)](https://codespaces.new/pascalvanderheiden/azd-ais-lza)
+[![Open in Dev Container](https://img.shields.io/static/v1?style=for-the-badge&label=Dev+Container&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/Azure/pascalvanderheiden/azd-ais-lza)
 
 
 ## <a name="style"></a> Code Style
