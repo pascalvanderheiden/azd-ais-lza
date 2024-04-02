@@ -17,14 +17,6 @@ param location string
 })
 param deployFrontDoor bool
 
-@description('Deploy Azure CosmosDB (ODS)')
-@metadata({
-  azd: {
-    type: 'boolean'
-  }
-})
-param deployCosmosDB bool
-
 @description('Deploy an App Service Environment v3')
 @metadata({
   azd: {
@@ -53,10 +45,13 @@ param useRedisCacheForAPIM bool
 @allowed(['StandardV2', 'Developer', 'Premium'])
 param apimSku string = 'StandardV2'
 
+@description('Azure Storage SKU.')
+@allowed(['Standard_LRS','Standard_GRS','Standard_RAGRS','Standard_ZRS','Premium_LRS','Premium_ZRS','Standard_GZRS','Standard_RAGZRS'])
+param storageSku string = 'Standard_LRS'
+
 //Leave blank to use default naming conventions
 param apimIdentityName string = ''
 param aseIdentityName string = ''
-param deploymentScriptIdentityName string = ''
 param apimServiceName string = ''
 param logAnalyticsName string = ''
 param applicationInsightsDashboardName string = ''
@@ -71,13 +66,14 @@ param privateEndpointNsgName string = ''
 param redisCacheServiceName string = ''
 param myIpAddress string = ''
 param myPrincipalId string = ''
-param cosmosDbAccountName string = ''
 param keyVaultName string = ''
 param frontDoorName string = ''
 param wafName string = ''
-param aseName string = ''
-param aspName string = ''
-param sbName string = ''
+param appServiceEnvironmentName string = ''
+param appServicePlanName string = ''
+param serviceBusName string = ''
+param storageAccountName string = ''
+param fileShareName string = ''
 
 // Tags that should be applied to all resources.
 // 
@@ -90,18 +86,16 @@ var resourceToken = toLower(uniqueString(subscription().id, environmentName, loc
 
 var monitorPrivateDnsZoneName = 'privatelink.monitor.azure.com'
 var redisCachePrivateDnsZoneName = 'privatelink.redis.cache.windows.net'
-var cosmosAccountPrivateDnsZoneName = 'privatelink.documents.azure.com'
 var keyvaultPrivateDnsZoneName = 'privatelink.vaultcore.azure.net'
 var serviceBusPrivateDnsZoneName = 'privatelink.servicebus.windows.net'
 var asePrivateDnsZoneName = 'privatelink.appserviceenvironment.net'
-var storageAccountPrivateDnsZoneName = 'privatelink.blob.${az.environment().suffixes.storage}'
+var storagePrivateDnsZoneName = 'privatelink.blob.${az.environment().suffixes.storage}'
 var privateDnsZoneNames = [
   monitorPrivateDnsZoneName
   redisCachePrivateDnsZoneName
-  cosmosAccountPrivateDnsZoneName
   keyvaultPrivateDnsZoneName
   serviceBusPrivateDnsZoneName
-  storageAccountPrivateDnsZoneName
+  storagePrivateDnsZoneName
   asePrivateDnsZoneName
 ]
 
@@ -129,23 +123,32 @@ module managedIdentityApim './modules/security/managed-identity.bicep' = {
   }
 }
 
-module managedIdentityAse './modules/security/managed-identity.bicep' = {
+module managedIdentityAse './modules/security/managed-identity.bicep' = if(deployAse){
   name: 'managed-identity-ase'
   scope: rg
   params: {
-    name: !empty(aseIdentityName) ? aseIdentityName : '${abbrs.managedIdentityUserAssignedIdentities}${resourceToken}-proxy'
+    name: !empty(aseIdentityName) ? aseIdentityName : '${abbrs.managedIdentityUserAssignedIdentities}${resourceToken}-ase'
     location: location
     tags: tags
   }
 }
 
-module managedIdentityDeploymentScript './modules/security/managed-identity.bicep' = {
-  name: 'managed-identity-deployment-script'
+module storage './modules/storage/storage.bicep' = {
+  name: 'storage'
   scope: rg
   params: {
-    name: !empty(deploymentScriptIdentityName) ? deploymentScriptIdentityName : '${abbrs.managedIdentityUserAssignedIdentities}${resourceToken}-deploymentscript'
+    name: !empty(storageAccountName) ? storageAccountName : '${abbrs.storageStorageAccounts}${resourceToken}'
     location: location
-    tags: tags
+    storageSku: storageSku 
+    aseManagedIdentityName: deployAse ? managedIdentityAse.outputs.managedIdentityName : ''
+    myPrincipalId: myPrincipalId
+    fileShareName: !empty(fileShareName) ? fileShareName : '${abbrs.webSitesAppServiceEnvironment}${resourceToken}-share'
+    vNetName: vnet.outputs.vnetName
+    privateEndpointSubnetName: vnet.outputs.privateEndpointSubnetName
+    storagePrivateEndpointName: '${abbrs.storageStorageAccounts}${abbrs.privateEndpoints}${resourceToken}'
+    storagePrivateDnsZoneName: storagePrivateDnsZoneName
+    dnsResourceGroupName: rg.name
+    vnetResourceGroupName: rg.name
   }
 }
 
@@ -231,25 +234,6 @@ module apim './modules/apim/apim.bicep' = {
   }
 }
 
-module cosmosDb './modules/cosmosdb/account.bicep' = if(deployCosmosDB){
-  name: 'cosmosdb'
-  scope: rg
-  params: {
-    name: !empty(cosmosDbAccountName) ? cosmosDbAccountName : '${abbrs.documentDBDatabaseAccounts}${resourceToken}'
-    location: location
-    cosmosAccountPrivateDnsZoneName: cosmosAccountPrivateDnsZoneName
-    vNetName: vnet.outputs.vnetName
-    privateEndpointSubnetName: vnet.outputs.privateEndpointSubnetName
-    cosmosPrivateEndpointName: '${abbrs.documentDBDatabaseAccounts}${abbrs.privateEndpoints}${resourceToken}'
-    apimManagedIdentityName: managedIdentityApim.outputs.managedIdentityName
-    aseManagedIdentityName: deployAse ? managedIdentityAse.outputs.managedIdentityName : ''
-    myIpAddress: myIpAddress
-    myPrincipalId: myPrincipalId
-    dnsResourceGroupName: rg.name
-    vnetResourceGroupName: rg.name
-  }
-}
-
 module keyvault './modules/keyvault/keyvault.bicep' = {
   name: 'keyvault'
   scope: rg
@@ -288,11 +272,12 @@ module ase './modules/host/ase_asp.bicep' = if(deployAse){
   name: 'ase'
   scope: rg
   params: {
-    name: empty(aseName) ? aseName : '${abbrs.webSitesAppServiceEnvironment}${resourceToken}'
-    aspName: empty(aspName) ? aspName : '${abbrs.webServerFarms}${resourceToken}'
+    name: empty(appServiceEnvironmentName) ? appServiceEnvironmentName : '${abbrs.webSitesAppServiceEnvironment}${resourceToken}'
+    aspName: empty(appServicePlanName) ? appServicePlanName : '${abbrs.webServerFarms}${resourceToken}'
     location: location
     virtualNetworkId: vnet.outputs.aseSubnetId
     subnetName: vnet.outputs.aseSubnetName
+    aseManagedIdentityName: managedIdentityAse.outputs.managedIdentityName
   }
 }
 
@@ -300,7 +285,7 @@ module serviceBus './modules/servicebus/servicebus.bicep' = if(deployServiceBus)
   name: 'servicebus'
   scope: rg
   params: {
-    name: empty(sbName) ? sbName : '${abbrs.serviceBusNamespaces}${resourceToken}'
+    name: empty(serviceBusName) ? serviceBusName : '${abbrs.serviceBusNamespaces}${resourceToken}'
     location: location
     serviceBusPrivateDnsZoneName : serviceBusPrivateDnsZoneName
     serviceBusPrivateEndpointName : '${abbrs.serviceBusNamespaces}${abbrs.privateEndpoints}${resourceToken}'
@@ -317,7 +302,6 @@ output DEPLOYMENT_LOCATION string = location
 output APIM_NAME string = apim.outputs.apimName
 output RESOURCE_TOKEN string = resourceToken
 output APPLICATIONINSIGHTS_CONNECTION_STRING string = monitoring.outputs.applicationInsightsConnectionString
-output DEPLOY_COSMOSDB bool = deployCosmosDB
 output DEPLOY_FRONTDOOR bool = deployFrontDoor
 output DEPLOY_ASE bool = deployAse
 output DEPLOY_SERVICEBUS bool = deployServiceBus

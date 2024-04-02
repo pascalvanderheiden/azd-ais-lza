@@ -27,14 +27,8 @@ resource apimService 'Microsoft.ApiManagement/service@2023-03-01-preview' existi
   scope: rgApim
 }
 
-resource apimMarketingSubscription 'Microsoft.ApiManagement/service/subscriptions@2021-08-01' existing = {
-  name: 'marketing-dept-subscription'
-  parent: apimService
-}
-
-
-resource apimFinanceSubscription 'Microsoft.ApiManagement/service/subscriptions@2021-08-01' existing = {
-  name: 'finance-dept-subscription'
+resource apimConsumerSubscription 'Microsoft.ApiManagement/service/subscriptions@2021-08-01' existing = {
+  name: 'consumer-subscription'
   parent: apimService
 }
 
@@ -101,8 +95,8 @@ module currentUserRoleAssignment '../roleassignments/roleassignment.bicep' = {
   }
 }
 
-resource marketingApiKey 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: 'Marketing'
+resource consumerApiKey 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+  name: 'Consumer'
   parent: keyvault
   properties: {
     attributes: {
@@ -110,19 +104,7 @@ resource marketingApiKey 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
       
     }
     
-    value: apimMarketingSubscription.listSecrets(apimMarketingSubscription.apiVersion).primaryKey
-  }
-}
-
-resource financeApiKey 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: 'Finance'
-  parent: keyvault
-  properties: {
-    attributes: {
-      enabled: true
-      
-    }
-    value: apimFinanceSubscription.listSecrets(apimFinanceSubscription.apiVersion).primaryKey
+    value: apimConsumerSubscription.listSecrets(apimConsumerSubscription.apiVersion).primaryKey
   }
 }
 

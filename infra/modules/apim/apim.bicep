@@ -73,7 +73,7 @@ resource apimService 'Microsoft.ApiManagement/service@2023-03-01-preview' = {
 }
 
 resource globalPolicies 'Microsoft.ApiManagement/service/policies@2023-03-01-preview' = {
-  name: 'global_policy'
+  name: 'policy'
   parent: apimService
   properties: {
     value: loadTextContent('./policies/global_policy.xml')

@@ -37,6 +37,7 @@ Available as template on:
 Deploy Azure Integration Services Landing Zone accelerator with Azure Developer CLI to create a secure and scalable environment for your integration services. The accelerator includes best practices for security, network isolation, monitoring, and more.
 
 ## Key features
+
 - **Infrastructure-as-code**: Bicep templates for provisioning and deploying the resources.
 - **Secure Access Management**: Best practices and configurations for managing secure access to Azure Integration Services.
 - **Monitoring**: Solutions for tracking and monitoring Azure Integration Services.
@@ -48,6 +49,7 @@ Deploy Azure Integration Services Landing Zone accelerator with Azure Developer 
 Read more: [Architecture in detail](#architecture-in-detail)
 
 ## Assets
+
 - Infrastructure-as-code (IaC) Bicep files under the `infra` folder that demonstrate how to provision resources and setup resource tagging for azd.
 - A [dev container](https://containers.dev) configuration file under the `.devcontainer` directory that installs infrastructure tooling by default. This can be readily used to create cloud-hosted developer environments such as [GitHub Codespaces](https://aka.ms/codespaces) or a local environment via a [VSCode DevContainer](https://code.visualstudio.com/docs/devcontainers/containers).
 - Continuous deployment workflows for CI providers such as GitHub Actions under the `.github` directory, and Azure Pipelines under the `.azdo` directory that work for most use-cases.
@@ -58,14 +60,15 @@ Read more: [Architecture in detail](#architecture-in-detail)
 
 - [Azure Developer CLI](https://docs.microsoft.com/en-us/azure/developer/azure-developer-cli/)
 - [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-- [Azure Functions Core Tools](https://docs.microsoft.com/en-us/azure/azure-functions/functions-run-local)
 
 ### 1. Initialize a new `azd` environment
 
 ```shell
 azd init -t pascalvanderheiden/azd-ais-lza
 ```
+
 If you already cloned this repository to your local machine or run from a Dev Container or GitHub Codespaces you can run the following command from the root folder.
+
 ```shell
 azd init
 ```
@@ -76,9 +79,22 @@ It will prompt you to provide a name that will later be used in the name of the 
 azd auth login
 ```
 
-### 2. Enable optional features
+### 2. Provision and deploy all the resources
 
-This repository uses environment variables to configure the deployment, which can be used to enable optional features. You can set these variables with the `azd env set` command. Learn more about all [optional features here](#optional-features).
+```shell
+azd up
+```
+
+It will prompt you to login, pick a subscription, and provide a location (like "eastus"). We've added extra conditional parameters to deploy: Azure Frontdoor, Application Service Environment v3, Azure Service Bus and Redis Cache. Then it will provision the resources in your account.
+
+For more details on the deployed services, see [additional details](#additional-details) below.
+
+> [!NOTE]  
+> Sometimes the DNS zones for the private endpoints aren't created correctly / in time. If you get an error when you deploy the resources, you can try to deploy the resources again.
+
+### 3. Manually enabling optional features after deployment
+
+This repository uses environment variables to configure the deployment, which can be used to enable optional features. You can manually set these variables with the `azd env set` command or by setting them using the the `azd up` command the first time, where they will be asked as conditional parameters. After setting the environment variables, you can run `azd up` to deploy the resources.
 
 ```shell
 azd env set DEPLOY_FRONTDOOR '<true-or-false>'
@@ -87,40 +103,17 @@ azd env set DEPLOY_SERVICEBUS '<true-or-false>'
 azd env set USE_REDIS_CACHE_APIM '<true-or-false>'
 ```
 
-In the azd template, we automatically set an environment variable for your current IP address. During deployment, this allows traffic from your local machine to the Azure Container Registry for deploying the containerized application. 
+In the azd template, we automatically set an environment variable for your current IP address. During deployment, this allows traffic from your local machine to the App Service Environment for deploying Logic Apps and Function Apps. If you want to use a different IP address, you can set the MY_IP_ADDRESS environment variable.
+
+> [!NOTE]
+> Deployment of Azure Redis Cache can take up to 30 minutes.
+
+```shell
+azd env set MY_IP_ADDRESS '<your-ip-address>'
+```
 
 > [!NOTE]  
 > To determine your IPv4 address, the service icanhazip.com is being used. To control the IPv4 addresss used directly (without the service), edit the MY_IP_ADDRESS field in the .azure\<name>\.env file. This file is created after azd init. Without a properly configured IP address, azd up will fail.
-
-
-### 3. Provision and deploy all the resources
-
-```shell
-azd up
-```
-
-It will prompt you to login, pick a subscription, and provide a location (like "eastus"). Then it will provision the resources in your account and deploy the latest code.
-
-> [!NOTE]  
-> Because Azure OpenAI isn't available in all regions, you might get an error when you deploy the resources. You can find more information about the availability of Azure OpenAI [here](https://docs.microsoft.com/en-us/azure/openai/overview/regions).
-
-For more details on the deployed services, see [additional details](#additional-details) below.
-
-
-> [!NOTE]  
-> Sometimes the DNS zones for the private endpoints aren't created correctly / in time. If you get an error when you deploy the resources, you can try to deploy the resources again.
-
-## Optional features
-
-### Azure Redis Cache
-
-You can [enable Azure Redis Cache to improve the performance of Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-cache-external). To enable this feature, set the `USE_REDIS_CACHE_APIM` environment variable to `true`.
-
-```shell
-azd env set USE_REDIS_CACHE_APIM 'true'
-```
-> [!NOTE]
-> Deployment of Azure Redis Cache can take up to 30 minutes.
 
 ## Additional features
 
@@ -166,7 +159,7 @@ The resource group and all the resources will be deleted and you'll not be promp
 
 A [tests.http](tests.http) file with relevant tests you can perform is included, to check if your deployment is successful. You need the 2 subcription keys for Marketing and Finance, created in API Management in order to test the API. You can find more information about how to create subscription keys [here](https://docs.microsoft.com/en-us/azure/api-management/api-management-howto-create-subscriptions#add-a-subscription-key-to-a-user).
 
-### Build Status 
+### Build Status
 
 After forking this repo, you can use this GitHub Action to enable CI/CD for your fork. Just adjust the README in your fork to point to your own GitHub repo.
 
@@ -226,19 +219,24 @@ We're also using [Azure Monitor Private Link Scope](https://learn.microsoft.com/
 
 ### Azure Redis Cache
 
-[Azure Redis Cache](https://azure.microsoft.com/en-us/services/cache/) allows you to use a secure open source Redis cache.
+[Azure Redis Cache](https://azure.microsoft.com/en-us/services/cache/) allows you to use a secure open source Redis cache. Read this on how we [enable Azure Redis Cache to improve the performance of Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-cache-external).
 
 ### Azure Service Bus
+
 [Azure Service Bus](https://azure.microsoft.com/en-us/services/service-bus/) allows you to use a secure messaging service.
 
 ### Azure Front Door
+
 [Azure Front Door](https://azure.microsoft.com/en-us/services/frontdoor/) allows you to use a secure global CDN.
 
-### Azure App Service Environment
+### Azure App Service Environment v3
+
 [Azure App Service Environment](https://azure.microsoft.com/en-us/services/app-service/environment/) allows you to use a secure and isolated environment for running your Logic App or Azure Function App.
 
 ### Azure Key Vault
+
 [Azure Key Vault](https://azure.microsoft.com/en-us/services/key-vault/) allows you to store and manage your secrets in a secure way.
 
-### Azure Event Grid Namespace
-[Azure Event Grid Namespace](https://azure.microsoft.com/en-us/services/event-grid/) allows you to use a secure event routing service.
+### Azure Storage
+
+[Azure Storage](https://azure.microsoft.com/en-us/services/storage/) allows you to store your data in a secure way.

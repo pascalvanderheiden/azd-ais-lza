@@ -1,9 +1,14 @@
 param name string
 param location string = resourceGroup().location
 param tags object = {}
-param storageSKU string = 'Standard_LRS'
+param storagePrivateDnsZoneName string
+param storagePrivateEndpointName string
+param privateEndpointSubnetName string
+param dnsResourceGroupName string
+param vnetResourceGroupName string
+param vNetName string
+param storageSku string 
 param aseManagedIdentityName string
-param myIpAddress string = ''
 param myPrincipalId string
 param fileShareName string
 
@@ -16,7 +21,7 @@ resource storage 'Microsoft.Storage/storageAccounts@2021-04-01' = {
   location: location
   tags: union(tags, { 'azd-service-name': name })
   sku: {
-    name: storageSKU
+    name: storageSku
   }
   kind: 'StorageV2'
   properties: {
@@ -24,12 +29,7 @@ resource storage 'Microsoft.Storage/storageAccounts@2021-04-01' = {
     allowBlobPublicAccess: false
     networkAcls:{
       bypass: 'AzureServices'
-      defaultAction: 'Deny'
-      ipRules: [
-        {
-          value: myIpAddress
-        }
-      ]
+      defaultAction: 'Allow'
     }
   }
 }
@@ -66,6 +66,23 @@ module currentUserRoleAssignment '../roleassignments/roleassignment.bicep' = {
     targetResourceId: storage.id
     deploymentName: 'st-currentuser-roleAssignment-AccountContributor'
     principalType: 'User'
+  }
+}
+
+module privateEndpoint '../networking/private-endpoint.bicep' = {
+  name: '${storage.name}-privateEndpoint-deployment'
+  params: {
+    groupIds: [
+      'blob'
+    ]
+    dnsZoneName: storagePrivateDnsZoneName
+    name: storagePrivateEndpointName
+    subnetName: privateEndpointSubnetName
+    privateLinkServiceId: storage.id
+    vNetName: vNetName
+    location: location
+    dnsResourceGroupName: dnsResourceGroupName
+    vnetResourceGroupName: vnetResourceGroupName
   }
 }
 
