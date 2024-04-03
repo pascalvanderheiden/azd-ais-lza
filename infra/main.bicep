@@ -74,6 +74,7 @@ param appServicePlanName string = ''
 param serviceBusName string = ''
 param storageAccountName string = ''
 param fileShareName string = ''
+param calcRestServiceName string = ''
 
 // Tags that should be applied to all resources.
 // 
@@ -141,7 +142,6 @@ module storage './modules/storage/storage.bicep' = {
     location: location
     storageSku: storageSku 
     aseManagedIdentityName: deployAse ? managedIdentityAse.outputs.managedIdentityName : ''
-    myPrincipalId: myPrincipalId
     fileShareName: !empty(fileShareName) ? fileShareName : '${abbrs.webSitesAppServiceEnvironment}${resourceToken}-share'
     vNetName: vnet.outputs.vnetName
     privateEndpointSubnetName: vnet.outputs.privateEndpointSubnetName
@@ -231,6 +231,18 @@ module apim './modules/apim/apim.bicep' = {
     applicationInsightsName: monitoring.outputs.applicationInsightsName
     apimManagedIdentityName: managedIdentityApim.outputs.managedIdentityName
     apimSubnetId: vnet.outputs.apimSubnetId
+  }
+}
+
+module calcRestApiService './modules/apim/openapi-link-api.bicep' = {
+  name: 'calc-rest-api-service'
+  scope: rg
+  params: {
+    name: !empty(calcRestServiceName) ? calcRestServiceName : 'calc-rest-${resourceToken}'
+    path: 'calc'
+    openApiSpecUrl: 'http://calcapi.cloudapp.net/calcapi.json'
+    apimName: apim.outputs.apimName
+    apimLoggerName: apim.outputs.apimLoggerName
   }
 }
 

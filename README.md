@@ -32,7 +32,7 @@ Available as template on:
 [![Awesome Badge](https://awesome.re/badge-flat2.svg)](https://aka.ms/awesome-azd)
 `azd`
 -->
-# Deploy the Azure Integration Services Landing Zone accelerator with Azure Developer CLI
+# Deploy Azure Integration Services Landing Zone Accelerator with Azure Developer CLI
 
 Deploy Azure Integration Services Landing Zone accelerator with Azure Developer CLI to create a secure and scalable environment for your integration services. The accelerator includes best practices for security, network isolation, monitoring, and more.
 

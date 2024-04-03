@@ -9,7 +9,6 @@ param vnetResourceGroupName string
 param vNetName string
 param storageSku string 
 param aseManagedIdentityName string
-param myPrincipalId string
 param fileShareName string
 
 resource aseManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = if (aseManagedIdentityName != ''){
@@ -55,17 +54,6 @@ module stContributorRoleAssignment '../roleassignments/roleassignment.bicep' = i
     roleName: 'Storage Blob Data Contributor'
     targetResourceId: storage.id
     deploymentName: 'st-ase-roleAssignment-DataContributor'
-  }
-}
-
-module currentUserRoleAssignment '../roleassignments/roleassignment.bicep' = {
-  name: 'st-currentuser-roleAssignment'
-  params: {
-    principalId: myPrincipalId
-    roleName: 'Storage Account Contributor'
-    targetResourceId: storage.id
-    deploymentName: 'st-currentuser-roleAssignment-AccountContributor'
-    principalType: 'User'
   }
 }
 

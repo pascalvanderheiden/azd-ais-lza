@@ -19,7 +19,7 @@ var routingRule1Name = '${nameLower}-apimRoutingRule1'
 
 var frontendEndpoint1hostName = '${nameLower}.azurefd.net'
 var backendPool1TargetUrl = apimGwUrl
-var frontDoorIdNamedValue = '${nameLower}-id'
+var frontDoorIdNamedValue = 'frontDoorId'
 
 resource apiManagement 'Microsoft.ApiManagement/service@2023-03-01-preview' existing = {
   name: apimName

@@ -107,4 +107,5 @@ resource apimLogger 'Microsoft.ApiManagement/service/loggers@2021-12-01-preview'
 }
 
 output apimName string = apimService.name
+output apimLoggerName string = apimLogger.name
 output apimEndpoint string = apimService.properties.gatewayUrl

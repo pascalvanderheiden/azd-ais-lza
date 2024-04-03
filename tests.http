@@ -6,9 +6,9 @@
 GET https://{{frontDoorName}}-fd.azurefd.net/status-0123456789abcdef
 
 ### Test Azure API Management endpoint, with Consumer subscription key (should fail)
-GET https://{{apimName}}.azure-api.net/echo/resource?param1=sample
+GET https://{{apimName}}.azure-api.net/calc/add?a=51&b=49
 api-key: {{subscriptionKeyConsumer}}
 
 ### Test Front Door endpoint, with Consumer subscription key (should succeed)
-GET https://{{frontDoorName}}.azurefd.net/echo/resource?param1=sample
+GET https://{{frontDoorName}}.azurefd.net/calc/add?a=51&b=49
 api-key: {{subscriptionKeyConsumer}}
