@@ -21,7 +21,7 @@ var frontendEndpoint1hostName = '${nameLower}.azurefd.net'
 var backendPool1TargetUrl = apimGwUrl
 var frontDoorIdNamedValue = 'frontDoorId'
 
-resource apiManagement 'Microsoft.ApiManagement/service@2023-03-01-preview' existing = {
+resource apimService 'Microsoft.ApiManagement/service@2023-03-01-preview' existing = {
   name: apimName
 }
 
@@ -173,12 +173,24 @@ resource resAzFdWaf 'Microsoft.Network/FrontDoorWebApplicationFirewallPolicies@2
 
 resource fdIdApimNamedValue 'Microsoft.ApiManagement/service/namedValues@2021-08-01' = {
   name: frontDoorIdNamedValue
-  parent: apiManagement
+  parent: apimService
   properties: {
     displayName: frontDoorIdNamedValue
     secret: true
     value: resAzFd.properties.frontdoorId
   }
+}
+
+resource globalPolicies 'Microsoft.ApiManagement/service/policies@2023-03-01-preview' = {
+  name: 'policy'
+  parent: apimService
+  properties: {
+    value: loadTextContent('../apim/policies/global_policy.xml')
+    format: 'rawxml'
+  }
+  dependsOn: [
+    fdIdApimNamedValue
+  ]
 }
 
 resource logAnalyticsWorkspaceDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {

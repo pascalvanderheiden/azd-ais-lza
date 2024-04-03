@@ -72,15 +72,6 @@ resource apimService 'Microsoft.ApiManagement/service@2023-03-01-preview' = {
   }
 }
 
-resource globalPolicies 'Microsoft.ApiManagement/service/policies@2023-03-01-preview' = {
-  name: 'policy'
-  parent: apimService
-  properties: {
-    value: loadTextContent('./policies/global_policy.xml')
-    format: 'rawxml'
-  }
-}
-
 resource apiConsumerSubscription 'Microsoft.ApiManagement/service/subscriptions@2023-03-01-preview' = {
   parent: apimService
   name: 'consumer-subscription'
