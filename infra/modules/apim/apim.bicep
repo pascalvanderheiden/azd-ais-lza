@@ -25,7 +25,7 @@ resource managedIdentityApim 'Microsoft.ManagedIdentity/userAssignedIdentities@2
 }
 
 //setting explicit public IP for APIM will force stV2 instance of APIM
-resource apimPublicIp 'Microsoft.Network/publicIPAddresses@2023-04-01' existing = {
+resource apimPublicIp 'Microsoft.Network/publicIPAddresses@2023-04-01' existing = if(sku != 'StandardV2'){
   name: '${name}-pip'
 }
 
@@ -47,7 +47,7 @@ resource apimService 'Microsoft.ApiManagement/service@2023-03-01-preview' = {
     publisherEmail: publisherEmail
     publisherName: publisherName
     virtualNetworkType: virtualNetworkType
-    publicIpAddressId: apimPublicIp.id 
+    publicIpAddressId: sku != 'StandardV2' ? apimPublicIp.id : null 
     virtualNetworkConfiguration: {
       subnetResourceId: apimSubnetId
     }

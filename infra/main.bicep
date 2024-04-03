@@ -208,7 +208,7 @@ module monitoring './modules/monitor/monitoring.bicep' = {
 }
 
 var apimService = !empty(apimServiceName) ? apimServiceName : '${abbrs.apiManagementService}${resourceToken}'
-module apimPip './modules/networking/publicip.bicep' = {
+module apimPip './modules/networking/publicip.bicep' = if(apimSku != 'StandardV2'){
   name: 'apim-pip'
   scope: rg
   params: {
@@ -272,8 +272,8 @@ module ase './modules/host/ase_asp.bicep' = if(deployAse){
   name: 'ase'
   scope: rg
   params: {
-    name: empty(appServiceEnvironmentName) ? appServiceEnvironmentName : '${abbrs.webSitesAppServiceEnvironment}${resourceToken}'
-    aspName: empty(appServicePlanName) ? appServicePlanName : '${abbrs.webServerFarms}${resourceToken}'
+    name: !empty(appServiceEnvironmentName) ? appServiceEnvironmentName : '${abbrs.webSitesAppServiceEnvironment}${resourceToken}'
+    aspName: !empty(appServicePlanName) ? appServicePlanName : '${abbrs.webServerFarms}${resourceToken}'
     location: location
     virtualNetworkId: vnet.outputs.aseSubnetId
     subnetName: vnet.outputs.aseSubnetName
@@ -285,7 +285,7 @@ module serviceBus './modules/servicebus/servicebus.bicep' = if(deployServiceBus)
   name: 'servicebus'
   scope: rg
   params: {
-    name: empty(serviceBusName) ? serviceBusName : '${abbrs.serviceBusNamespaces}${resourceToken}'
+    name: !empty(serviceBusName) ? serviceBusName : '${abbrs.serviceBusNamespaces}${resourceToken}'
     location: location
     serviceBusPrivateDnsZoneName : serviceBusPrivateDnsZoneName
     serviceBusPrivateEndpointName : '${abbrs.serviceBusNamespaces}${abbrs.privateEndpoints}${resourceToken}'
@@ -306,6 +306,6 @@ output DEPLOY_FRONTDOOR bool = deployFrontDoor
 output DEPLOY_ASE bool = deployAse
 output DEPLOY_SERVICEBUS bool = deployServiceBus
 output DEPLOY_REDIS bool = useRedisCacheForAPIM
-output AZURE_FD_URL string = 'https://${frontDoor.outputs.frontDoorUrl}'
+output AZURE_FD_URL string =  deployFrontDoor ? 'https://${frontDoor.outputs.frontDoorUrl}' : ''
 output AZURE_TENANT_ID string = subscription().tenantId
 
