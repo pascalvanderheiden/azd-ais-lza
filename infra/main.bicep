@@ -273,7 +273,7 @@ module frontDoor './modules/networking/frontdoor_waf.bicep' = if(deployFrontDoor
   scope: rg
   params: {
     name: !empty(frontDoorName) ? frontDoorName : '${abbrs.networkFrontDoors}${resourceToken}'
-    wafName: !empty(wafName) ? wafName : '${abbrs.networkFrontdoorWebApplicationFirewallPolicies}${resourceToken}'
+    wafName: !empty(wafName) ? wafName : '${abbrs.networkFirewallPoliciesWebApplication}${resourceToken}'
     apimGwUrl: apim.outputs.apimEndpoint
     apimName: apim.outputs.apimName
     logAnalyticsWorkspaceIdForDiagnostics : monitoring.outputs.logAnalyticsWorkspaceId

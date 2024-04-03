@@ -32,7 +32,8 @@ resource restApi 'Microsoft.ApiManagement/service/apis@2022-08-01' = {
     subscriptionKeyParameterNames: {
       header: 'api-key'
     }
-    format: 'openapi-link'
+    type: 'http'
+    format: 'openapi+json-link'
     value: openApiSpecUrl
   }
 }
