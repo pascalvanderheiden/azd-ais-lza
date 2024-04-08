@@ -112,7 +112,7 @@ resource resAzFd 'Microsoft.Network/frontdoors@2020-01-01' = {
           enabledState: 'Enabled'
           routeConfiguration: {
             '@odata.type': '#Microsoft.Azure.FrontDoor.Models.FrontdoorForwardingConfiguration'
-            forwardingProtocol: 'HttpsOnly'
+            forwardingProtocol: 'MatchRequest'
             backendPool: {
               id: resourceId('Microsoft.Network/frontDoors/BackendPools', nameLower, backendPool1Name)
             }

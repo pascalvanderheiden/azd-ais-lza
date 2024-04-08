@@ -33,7 +33,7 @@ resource restApi 'Microsoft.ApiManagement/service/apis@2022-08-01' = {
       header: 'api-key'
     }
     type: 'http'
-    format: 'openapi+json-link'
+    format: 'swagger-link-json'
     value: openApiSpecUrl
   }
 }
