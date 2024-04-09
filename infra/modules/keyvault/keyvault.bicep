@@ -80,16 +80,16 @@ module aseRoleAssignment '../roleassignments/roleassignment.bicep' = if (aseMana
   }
 }
 
-module currentUserRoleAssignment '../roleassignments/roleassignment.bicep' = {
-  name: 'kv-currentuser-roleAssignment'
-  params: {
-    principalId: myPrincipalId
-    roleName: 'Key Vault Secrets Officer'
-    targetResourceId: keyvault.id
-    deploymentName: 'kv-currentuser-roleAssignment-SecretOfficer'
-    principalType: 'User'
-  }
-}
+// module currentUserRoleAssignment '../roleassignments/roleassignment.bicep' = {
+//   name: 'kv-currentuser-roleAssignment'
+//   params: {
+//     principalId: myPrincipalId
+//     roleName: 'Key Vault Secrets Officer'
+//     targetResourceId: keyvault.id
+//     deploymentName: 'kv-currentuser-roleAssignment-SecretOfficer'
+//     principalType: 'User'
+//   }
+// }
 
 resource consumerApiKey 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   name: 'Consumer'

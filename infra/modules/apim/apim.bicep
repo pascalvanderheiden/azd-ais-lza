@@ -8,13 +8,12 @@ param publisherEmail string = 'noreply@microsoft.com'
 @minLength(1)
 param publisherName string = 'n/a'
 param sku string
-param skuCount int = 1
+param skuCount int
 param applicationInsightsName string
 param apimManagedIdentityName string
 //Vnet Integration
 param apimSubnetId string
 param virtualNetworkType string
-
 
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = {
   name: applicationInsightsName
@@ -68,7 +67,6 @@ resource apimService 'Microsoft.ApiManagement/service@2023-03-01-preview' = {
       'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11': 'false'
       'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30': 'false'
     }
-    
   }
 }
 
@@ -99,4 +97,6 @@ resource apimLogger 'Microsoft.ApiManagement/service/loggers@2021-12-01-preview'
 
 output apimName string = apimService.name
 output apimLoggerName string = apimLogger.name
-output apimEndpoint string = apimService.properties.hostnameConfigurations[0].hostName
+output apimInternalIPAddress string = apimService.properties.publicIPAddresses[0]
+output apimProxyHostName string = apimService.properties.hostnameConfigurations[0].hostName
+output apimDeveloperPortalHostName string = replace(apimService.properties.developerPortalUrl, 'https://', '')

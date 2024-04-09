@@ -41,13 +41,40 @@ param deployServiceBus bool
 })
 param useRedisCacheForAPIM bool
 
+@description('Front Door SKU.')
+@allowed([
+  'Standard_AzureFrontDoor'
+  'Premium_AzureFrontDoor'
+])
+param frontDoorSku string = 'Premium_AzureFrontDoor'
+
 @description('Azure API Management SKU.')
 @allowed(['StandardV2', 'Developer', 'Premium'])
 param apimSku string = 'StandardV2'
+param apimSkuCount int = 1
 
 @description('Azure Storage SKU.')
 @allowed(['Standard_LRS','Standard_GRS','Standard_RAGRS','Standard_ZRS','Premium_LRS','Premium_ZRS','Standard_GZRS','Standard_RAGZRS'])
 param storageSku string = 'Standard_LRS'
+
+@allowed([
+  'Detection'
+  'Prevention'
+])
+@description('The mode that the WAF should be deployed using. In \'Prevention\' mode, the WAF will block requests it detects as malicious. In \'Detection\' mode, the WAF will not block requests and will simply log the request.')
+param wafMode string = 'Prevention'
+
+@description('The list of managed rule sets to configure on the WAF.')
+param wafManagedRuleSets array = [
+  {
+    ruleSetType: 'Microsoft_DefaultRuleSet'
+    ruleSetVersion: '1.1'
+  }
+  {
+    ruleSetType: 'Microsoft_BotManagerRuleSet'
+    ruleSetVersion: '1.0'
+  }
+]
 
 //Leave blank to use default naming conventions
 param apimIdentityName string = ''
@@ -68,7 +95,8 @@ param myIpAddress string = ''
 param myPrincipalId string = ''
 param keyVaultName string = ''
 param frontDoorName string = ''
-param wafName string = ''
+param frontDoorProxyEndpointName string = ''
+param frontDoorDeveloperPortalEndpointName string = ''
 param appServiceEnvironmentName string = ''
 param appServicePlanName string = ''
 param serviceBusName string = ''
@@ -84,7 +112,7 @@ param calcRestServiceName string = ''
 var tags = { 'azd-env-name': environmentName }
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
-
+var apimFrontDoorIdNamedValueName = 'frontDoorId'
 var monitorPrivateDnsZoneName = 'privatelink.monitor.azure.com'
 var redisCachePrivateDnsZoneName = 'privatelink.redis.cache.windows.net'
 var keyvaultPrivateDnsZoneName = 'privatelink.vaultcore.azure.net'
@@ -227,6 +255,7 @@ module apim './modules/apim/apim.bicep' = {
     location: location
     tags: tags
     sku: apimSku
+    skuCount: apimSkuCount
     virtualNetworkType: 'External'
     applicationInsightsName: monitoring.outputs.applicationInsightsName
     apimManagedIdentityName: managedIdentityApim.outputs.managedIdentityName
@@ -268,14 +297,20 @@ module keyvault './modules/keyvault/keyvault.bicep' = {
   }
 }
 
-module frontDoor './modules/networking/frontdoor_waf.bicep' = if(deployFrontDoor){
-  name: 'frontdoor'
+module frontDoor './modules/networking/front-door.bicep' = if(deployFrontDoor){
+  name: 'front-door'
   scope: rg
   params: {
     name: !empty(frontDoorName) ? frontDoorName : '${abbrs.networkFrontDoors}${resourceToken}'
-    wafName: !empty(wafName) ? wafName : '${abbrs.networkFirewallPoliciesWebApplication}${resourceToken}'
-    apimGwUrl: apim.outputs.apimEndpoint
+    sku: frontDoorSku
+    proxyEndpointName: !empty(frontDoorProxyEndpointName) ? frontDoorProxyEndpointName : 'afd-proxy-${abbrs.networkFrontDoors}${resourceToken}'
+    developerPortalEndpointName: !empty(frontDoorDeveloperPortalEndpointName) ? frontDoorDeveloperPortalEndpointName : 'afd-portal-${abbrs.networkFrontDoors}${resourceToken}'
+    proxyOriginHostName: apim.outputs.apimProxyHostName
+    developerPortalOriginHostName: apim.outputs.apimDeveloperPortalHostName
     apimName: apim.outputs.apimName
+    wafMode: wafMode
+    wafManagedRuleSets: wafManagedRuleSets
+    apimFrontDoorIdNamedValueName: apimFrontDoorIdNamedValueName
     logAnalyticsWorkspaceIdForDiagnostics : monitoring.outputs.logAnalyticsWorkspaceId
   }
 }
@@ -312,12 +347,13 @@ module serviceBus './modules/servicebus/servicebus.bicep' = if(deployServiceBus)
 output TENANT_ID string = subscription().tenantId
 output DEPLOYMENT_LOCATION string = location
 output APIM_NAME string = apim.outputs.apimName
+output FRONTDOOR_NAME string = frontDoor.outputs.frontDoorName
 output RESOURCE_TOKEN string = resourceToken
 output APPLICATIONINSIGHTS_CONNECTION_STRING string = monitoring.outputs.applicationInsightsConnectionString
 output DEPLOY_FRONTDOOR bool = deployFrontDoor
 output DEPLOY_ASE bool = deployAse
 output DEPLOY_SERVICEBUS bool = deployServiceBus
 output DEPLOY_REDIS bool = useRedisCacheForAPIM
-output AZURE_FD_URL string =  deployFrontDoor ? 'https://${frontDoor.outputs.frontDoorUrl}' : ''
+output AZURE_FD_URL string =  deployFrontDoor ? 'https://${frontDoor.outputs.frontDoorProxyEndpointHostName}' : ''
 output AZURE_TENANT_ID string = subscription().tenantId
 

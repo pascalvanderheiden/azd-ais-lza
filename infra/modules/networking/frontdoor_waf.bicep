@@ -1,7 +1,9 @@
 param name string
 param wafName string
+param sku string
 param apimGwUrl string
 param apimName string
+param apimFrontDoorIdNamedValueName string
 param logAnalyticsWorkspaceIdForDiagnostics string
 param tags object = {}
 
@@ -19,7 +21,6 @@ var routingRule1Name = '${nameLower}-apimRoutingRule1'
 
 var frontendEndpoint1hostName = '${nameLower}.azurefd.net'
 var backendPool1TargetUrl = apimGwUrl
-var frontDoorIdNamedValue = 'frontDoorId'
 
 resource apimService 'Microsoft.ApiManagement/service@2023-03-01-preview' existing = {
   name: apimName
@@ -172,10 +173,10 @@ resource resAzFdWaf 'Microsoft.Network/FrontDoorWebApplicationFirewallPolicies@2
 }
 
 resource fdIdApimNamedValue 'Microsoft.ApiManagement/service/namedValues@2021-08-01' = {
-  name: frontDoorIdNamedValue
+  name: apimFrontDoorIdNamedValueName
   parent: apimService
   properties: {
-    displayName: frontDoorIdNamedValue
+    displayName: apimFrontDoorIdNamedValueName
     secret: true
     value: resAzFd.properties.frontdoorId
   }

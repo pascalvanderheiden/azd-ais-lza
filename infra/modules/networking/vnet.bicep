@@ -54,7 +54,7 @@ resource apimNsg 'Microsoft.Network/networkSecurityGroups@2020-07-01' = {
             sourceAddressPrefix: 'AzureFrontDoor.Backend'
             destinationAddressPrefix: 'VirtualNetwork'
             access: 'Allow'
-            priority: 2761
+            priority: 100
             direction: 'Inbound'
         }
       }
@@ -67,20 +67,20 @@ resource apimNsg 'Microsoft.Network/networkSecurityGroups@2020-07-01' = {
             sourceAddressPrefix: 'ApiManagement'
             destinationAddressPrefix: 'VirtualNetwork'
             access: 'Allow'
-            priority: 2731
+            priority: 110
             direction: 'Inbound'
         }
       }
       {
         name: 'AllowAPIMLoadBalancer'
         properties: {
-            protocol: '*'
+            protocol: 'Tcp'
             sourcePortRange: '*'
-            destinationPortRange: '6390'
+            destinationPortRange: '*'
             sourceAddressPrefix: 'AzureLoadBalancer'
             destinationAddressPrefix: 'VirtualNetwork'
             access: 'Allow'
-            priority: 2741
+            priority: 120
             direction: 'Inbound'
         }
       }
@@ -93,8 +93,34 @@ resource apimNsg 'Microsoft.Network/networkSecurityGroups@2020-07-01' = {
             sourceAddressPrefix: 'VirtualNetwork'
             destinationAddressPrefix: 'Storage'
             access: 'Allow'
-            priority: 2731
+            priority: 130
             direction: 'Outbound'
+        }
+      }
+      {
+        name: 'AllowEntra'
+        properties: {
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: 'VirtualNetwork'
+          destinationAddressPrefix: 'AzureActiveDirectory'
+          access: 'Allow'
+          priority: 140
+          direction: 'Outbound'
+        }
+      }
+      {
+        name: 'AllowKeyvault'
+        properties: {
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: 'VirtualNetwork'
+          destinationAddressPrefix: 'AzureKeyVault'
+          access: 'Allow'
+          priority: 150
+          direction: 'Outbound'
         }
       }
       {
@@ -105,13 +131,26 @@ resource apimNsg 'Microsoft.Network/networkSecurityGroups@2020-07-01' = {
               sourceAddressPrefix: 'VirtualNetwork'
               destinationAddressPrefix: 'AzureMonitor'
               access: 'Allow'
-              priority: 2741
+              priority: 160
               direction: 'Outbound'
               destinationPortRanges: [
                   '1886'
                   '443'
               ]
           }
+      }
+      {
+        name: 'AllowRedis'
+        properties: {
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '6381-6383'
+          sourceAddressPrefix: 'VirtualNetwork'
+          destinationAddressPrefix: 'VirtualNetwork'
+          access: 'Allow'
+          priority: 170
+          direction: 'Inbound'
+        }
       }
     ]
   }
@@ -131,7 +170,7 @@ resource aseNsg 'Microsoft.Network/networkSecurityGroups@2022-09-01' = if(deploy
             sourceAddressPrefix: 'VirtualNetwork'
             destinationAddressPrefix: 'AzureConnectors'
             access: 'Allow'
-            priority: 2700
+            priority: 110
             direction: 'Outbound'
         }
       }
@@ -144,7 +183,7 @@ resource aseNsg 'Microsoft.Network/networkSecurityGroups@2022-09-01' = if(deploy
               sourceAddressPrefix: 'AzureConnectors'
               destinationAddressPrefix: 'VirtualNetwork'
               access: 'Allow'
-              priority: 2710
+              priority: 120
               direction: 'Inbound'
           }
       }
