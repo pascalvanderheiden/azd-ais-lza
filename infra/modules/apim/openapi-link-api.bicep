@@ -1,4 +1,5 @@
 param name string
+param displayName string
 param apimName string
 param apimLoggerName string
 param openApiSpecUrl string
@@ -25,7 +26,7 @@ resource restApi 'Microsoft.ApiManagement/service/apis@2022-08-01' = {
   name: name
   parent: apimService
   properties: {
-    displayName: name
+    displayName: displayName
     path: path
     protocols: [ 'https' ]
     subscriptionRequired: true

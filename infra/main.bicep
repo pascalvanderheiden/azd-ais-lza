@@ -39,7 +39,7 @@ param deployServiceBus bool
     type: 'boolean'
   }
 })
-param useRedisCacheForAPIM bool
+param deployRedisCache bool
 
 @description('Front Door SKU.')
 @allowed([
@@ -180,7 +180,7 @@ module storage './modules/storage/storage.bicep' = {
   }
 }
 
-module redisCache './modules/cache/redis.bicep' = if(useRedisCacheForAPIM){
+module redisCache './modules/cache/redis.bicep' = if(deployRedisCache){
   name: 'redis-cache'
   scope: rg
   params: {
@@ -268,6 +268,7 @@ module calcRestApiService './modules/apim/openapi-link-api.bicep' = {
   scope: rg
   params: {
     name: !empty(calcRestServiceName) ? calcRestServiceName : 'calc-rest-${resourceToken}'
+    displayName: 'Calculator API'
     path: 'calc'
     openApiSpecUrl: 'http://calcapi.cloudapp.net/calcapi.json'
     apimName: apim.outputs.apimName
@@ -353,7 +354,4 @@ output APPLICATIONINSIGHTS_CONNECTION_STRING string = monitoring.outputs.applica
 output DEPLOY_FRONTDOOR bool = deployFrontDoor
 output DEPLOY_ASE bool = deployAse
 output DEPLOY_SERVICEBUS bool = deployServiceBus
-output DEPLOY_REDIS bool = useRedisCacheForAPIM
-output AZURE_FD_URL string =  deployFrontDoor ? 'https://${frontDoor.outputs.frontDoorProxyEndpointHostName}' : ''
-output AZURE_TENANT_ID string = subscription().tenantId
-
+output DEPLOY_REDIS bool = deployRedisCache

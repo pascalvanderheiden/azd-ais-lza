@@ -34,7 +34,7 @@ Available as template on:
 -->
 # Deploy Azure Integration Services Landing Zone Accelerator with Azure Developer CLI
 
-Deploy Azure Integration Services Landing Zone accelerator with Azure Developer CLI to create a secure and scalable environment for your integration services. The accelerator includes best practices for security, network isolation, monitoring, and more.
+Deploy Azure Integration Services Landing Zone accelerator with Azure Developer CLI to create a secure and scalable environment for your integration services. The accelerator includes best practices for security, network isolation, monitoring, and more. This repository can be used as a template for deploying integration patterns on Azure. Depending on your preference, for example: I want to deploy Logic Apps in a ASEv3 because I need VNET isolation, you set deployAse in `azd up` to 'true'. The same applies to Azure Front Door, Service Bus and Redis Cache. 
 
 ## Key features
 
@@ -85,28 +85,34 @@ azd auth login
 azd up
 ```
 
-It will prompt you to login, pick a subscription, and provide a location (like "eastus"). We've added extra conditional parameters to deploy: Azure Frontdoor, Application Service Environment v3, Azure Service Bus and Redis Cache. Then it will provision the resources in your account.
+It will prompt you to login, pick a subscription, and provide a location (like "eastus"). We've added extra conditional parameters to deploy: Azure Frontdoor, Application Service Environment v3, Azure Service Bus and Redis Cache. Then it will provision the resources in your account. These choices can vary per organization, that is why they are optional.
 
 For more details on the deployed services, see [additional details](#additional-details) below.
+
+The conditional parameters set in the `azd up` command are stored in the .azure\<name>\config.json file:
+
+```json
+{
+  "infra": {
+    "parameters": {
+      "deployAse": "<true or false>",
+      "deployFrontDoor": "<true or false>",
+      "deployServiceBus": "<true or false>",
+      "deployRedisCache": "<true or false>"
+    }
+  }
+}
+```
 
 > [!NOTE]  
 > Sometimes the DNS zones for the private endpoints aren't created correctly / in time. If you get an error when you deploy the resources, you can try to deploy the resources again.
 
-### 3. Manually enabling optional features after deployment
-
-This repository uses environment variables to configure the deployment, which can be used to enable optional features. You can manually set these variables with the `azd env set` command or by setting them using the the `azd up` command the first time, where they will be asked as conditional parameters. After setting the environment variables, you can run `azd up` to deploy the resources.
-
-```shell
-azd env set DEPLOY_FRONTDOOR '<true-or-false>'
-azd env set DEPLOY_ASE '<true-or-false>'
-azd env set DEPLOY_SERVICEBUS '<true-or-false>'
-azd env set USE_REDIS_CACHE_APIM '<true-or-false>'
-```
-
-In the azd template, we automatically set an environment variable for your current IP address. During deployment, this allows traffic from your local machine to the App Service Environment for deploying Logic Apps and Function Apps. If you want to use a different IP address, you can set the MY_IP_ADDRESS environment variable.
-
 > [!NOTE]
 > Deployment of Azure Redis Cache can take up to 30 minutes.
+
+### 3. Environment variables
+
+In the azd template, we automatically set an environment variable for your current IP address. During deployment, this allows traffic from your local machine to the App Service Environment for deploying Logic Apps and Function Apps. If you want to use a different IP address, you can set the MY_IP_ADDRESS environment variable.
 
 ```shell
 azd env set MY_IP_ADDRESS '<your-ip-address>'
