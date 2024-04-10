@@ -9,6 +9,14 @@ param environmentName string
 @description('Primary location for all resources')
 param location string
 
+@description('Deploy API Management Developer Portal')
+@metadata({
+  azd: {
+    type: 'boolean'
+  }
+})
+param deployApimDevPortal bool
+
 @description('Deploy Front Door')
 @metadata({
   azd: {
@@ -260,6 +268,7 @@ module apim './modules/apim/apim.bicep' = {
     applicationInsightsName: monitoring.outputs.applicationInsightsName
     apimManagedIdentityName: managedIdentityApim.outputs.managedIdentityName
     apimSubnetId: vnet.outputs.apimSubnetId
+    deployApimDevPortal: deployApimDevPortal
   }
 }
 
@@ -307,7 +316,7 @@ module frontDoor './modules/networking/front-door.bicep' = if(deployFrontDoor){
     proxyEndpointName: !empty(frontDoorProxyEndpointName) ? frontDoorProxyEndpointName : 'afd-proxy-${abbrs.networkFrontDoors}${resourceToken}'
     developerPortalEndpointName: !empty(frontDoorDeveloperPortalEndpointName) ? frontDoorDeveloperPortalEndpointName : 'afd-portal-${abbrs.networkFrontDoors}${resourceToken}'
     proxyOriginHostName: apim.outputs.apimProxyHostName
-    developerPortalOriginHostName: apim.outputs.apimDeveloperPortalHostName
+    developerPortalOriginHostName: deployApimDevPortal ? apim.outputs.apimDeveloperPortalHostName : ''
     apimName: apim.outputs.apimName
     wafMode: wafMode
     wafManagedRuleSets: wafManagedRuleSets

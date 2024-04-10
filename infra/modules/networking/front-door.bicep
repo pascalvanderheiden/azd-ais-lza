@@ -122,7 +122,7 @@ resource developerPortalOriginGroup 'Microsoft.Cdn/profiles/originGroups@2021-06
   }
 }
 
-resource developerPortalOrigin 'Microsoft.Cdn/profiles/originGroups/origins@2021-06-01' = {
+resource developerPortalOrigin 'Microsoft.Cdn/profiles/originGroups/origins@2021-06-01' = if(developerPortalOriginHostName != ''){
   name: developerPortalOriginName
   parent: developerPortalOriginGroup
   properties: {
@@ -135,7 +135,7 @@ resource developerPortalOrigin 'Microsoft.Cdn/profiles/originGroups/origins@2021
   }
 }
 
-resource developerPortalRoute 'Microsoft.Cdn/profiles/afdEndpoints/routes@2021-06-01' = {
+resource developerPortalRoute 'Microsoft.Cdn/profiles/afdEndpoints/routes@2021-06-01' = if(developerPortalOriginHostName != ''){
   name: developerPortalRouteName
   parent: developerPortalEndpoint
   dependsOn: [
@@ -243,4 +243,4 @@ resource logAnalyticsWorkspaceDiagnostics 'Microsoft.Insights/diagnosticSettings
 output frontDoorId string = profile.properties.frontDoorId
 output frontDoorName string = profile.name
 output frontDoorProxyEndpointHostName string = proxyEndpoint.properties.hostName
-output frontDoorDeveloperPortalEndpointHostName string = developerPortalEndpoint.properties.hostName
+output frontDoorDeveloperPortalEndpointHostName string = developerPortalOriginHostName != '' ? developerPortalEndpoint.properties.hostName : ''

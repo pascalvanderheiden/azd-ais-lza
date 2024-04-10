@@ -18,6 +18,7 @@ products:
 - azure-app-service-environment
 - azure-service-bus
 - azure-key-vault
+- azure-front-door
 urlFragment: azd-ais-lza
 name: Deploy the Azure Integration Services Landing Zone accelerator with Azure Developer CLI
 description: Deploy Azure Integration Services Landing Zone accelerator with Azure Developer CLI to create a secure and scalable environment for your integration services. The accelerator includes best practices for security, network isolation, monitoring, and more.
@@ -95,6 +96,7 @@ The conditional parameters set in the `azd up` command are stored in the .azure\
 {
   "infra": {
     "parameters": {
+      "deployApimDevPortal": "<true or false>",
       "deployAse": "<true or false>",
       "deployFrontDoor": "<true or false>",
       "deployServiceBus": "<true or false>",
@@ -109,6 +111,9 @@ The conditional parameters set in the `azd up` command are stored in the .azure\
 
 > [!NOTE]
 > Deployment of Azure Redis Cache can take up to 30 minutes.
+
+> [!NOTE]
+> Deployment of App Service Environment v3 can take up to 30 minutes.
 
 ### 3. Environment variables
 
