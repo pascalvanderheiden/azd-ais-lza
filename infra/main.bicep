@@ -103,6 +103,7 @@ param myIpAddress string = ''
 param myPrincipalId string = ''
 param keyVaultName string = ''
 param frontDoorName string = ''
+param wafName string = ''
 param frontDoorProxyEndpointName string = ''
 param frontDoorDeveloperPortalEndpointName string = ''
 param appServiceEnvironmentName string = ''
@@ -126,13 +127,11 @@ var redisCachePrivateDnsZoneName = 'privatelink.redis.cache.windows.net'
 var keyvaultPrivateDnsZoneName = 'privatelink.vaultcore.azure.net'
 var serviceBusPrivateDnsZoneName = 'privatelink.servicebus.windows.net'
 var asePrivateDnsZoneName = 'privatelink.appserviceenvironment.net'
-var storagePrivateDnsZoneName = 'privatelink.blob.${az.environment().suffixes.storage}'
 var privateDnsZoneNames = [
   monitorPrivateDnsZoneName
   redisCachePrivateDnsZoneName
   keyvaultPrivateDnsZoneName
   serviceBusPrivateDnsZoneName
-  storagePrivateDnsZoneName
   asePrivateDnsZoneName
 ]
 
@@ -179,12 +178,9 @@ module storage './modules/storage/storage.bicep' = {
     storageSku: storageSku 
     aseManagedIdentityName: deployAse ? managedIdentityAse.outputs.managedIdentityName : ''
     fileShareName: !empty(fileShareName) ? fileShareName : '${abbrs.webSitesAppServiceEnvironment}${resourceToken}-share'
-    vNetName: vnet.outputs.vnetName
-    privateEndpointSubnetName: vnet.outputs.privateEndpointSubnetName
-    storagePrivateEndpointName: '${abbrs.storageStorageAccounts}${abbrs.privateEndpoints}${resourceToken}'
-    storagePrivateDnsZoneName: storagePrivateDnsZoneName
-    dnsResourceGroupName: rg.name
-    vnetResourceGroupName: rg.name
+    aseSubnetName: vnet.outputs.aseSubnetName
+    myIpAddress: myIpAddress
+    myPrincipalId: myPrincipalId
   }
 }
 
@@ -298,7 +294,6 @@ module keyvault './modules/keyvault/keyvault.bicep' = {
     keyvaultPrivateEndpointName: '${abbrs.keyVaultVaults}${abbrs.privateEndpoints}${resourceToken}'
     keyvaultPrivateDnsZoneName: keyvaultPrivateDnsZoneName
     apimServiceName: apim.outputs.apimName
-    myIpAddress: myIpAddress
     myPrincipalId: myPrincipalId
     dnsResourceGroupName: rg.name
     vnetResourceGroupName: rg.name
@@ -312,6 +307,7 @@ module frontDoor './modules/networking/front-door.bicep' = if(deployFrontDoor){
   scope: rg
   params: {
     name: !empty(frontDoorName) ? frontDoorName : '${abbrs.networkFrontDoors}${resourceToken}'
+    wafName: !empty(wafName) ? wafName : '${abbrs.networkFrontdoorWebApplicationFirewallPolicies}${resourceToken}'
     sku: frontDoorSku
     proxyEndpointName: !empty(frontDoorProxyEndpointName) ? frontDoorProxyEndpointName : 'afd-proxy-${abbrs.networkFrontDoors}${resourceToken}'
     developerPortalEndpointName: !empty(frontDoorDeveloperPortalEndpointName) ? frontDoorDeveloperPortalEndpointName : 'afd-portal-${abbrs.networkFrontDoors}${resourceToken}'

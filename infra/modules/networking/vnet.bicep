@@ -36,6 +36,11 @@ var aseNewSubnet = {
           }
       }
     ]
+    serviceEndpoints: [
+      {
+        service: 'Microsoft.Storage'
+      }
+    ]
   }
 }
 

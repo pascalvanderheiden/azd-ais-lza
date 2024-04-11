@@ -1,21 +1,22 @@
 param name string
 param location string = resourceGroup().location
 param tags object = {}
-param storagePrivateDnsZoneName string
-param storagePrivateEndpointName string
-param privateEndpointSubnetName string
-param dnsResourceGroupName string
-param vnetResourceGroupName string
-param vNetName string
+param aseSubnetName string
 param storageSku string 
 param aseManagedIdentityName string
 param fileShareName string
+param myIpAddress string
+param myPrincipalId string
+
+resource aseSubnet 'Microsoft.Network/virtualNetworks/subnets@2023-04-01' existing = if(aseSubnetName != ''){
+  name: aseSubnetName
+}
 
 resource aseManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = if (aseManagedIdentityName != ''){
   name: aseManagedIdentityName
 }
 
-resource storage 'Microsoft.Storage/storageAccounts@2021-04-01' = {
+resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   name: name
   location: location
   tags: union(tags, { 'azd-service-name': name })
@@ -29,11 +30,23 @@ resource storage 'Microsoft.Storage/storageAccounts@2021-04-01' = {
     networkAcls:{
       bypass: 'AzureServices'
       defaultAction: 'Allow'
+      ipRules: [
+        {
+          action: 'Allow'
+          value: myIpAddress
+        }
+      ]
+      virtualNetworkRules: [
+        {
+          action: 'Allow'
+          id: aseSubnet.id
+        }
+      ]
     }
   }
 }
 
-resource fileShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2021-04-01' = {
+resource fileShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2023-01-01' = {
   name: '${storage.name}/default/${fileShareName}'
 }
 
@@ -57,20 +70,13 @@ module stContributorRoleAssignment '../roleassignments/roleassignment.bicep' = i
   }
 }
 
-module privateEndpoint '../networking/private-endpoint.bicep' = {
-  name: '${storage.name}-privateEndpoint-deployment'
+module currentUserRoleAssignment '../roleassignments/roleassignment.bicep' = if (aseManagedIdentityName != ''){
+  name: 'st-currentuser-roleAssignment'
   params: {
-    groupIds: [
-      'blob'
-    ]
-    dnsZoneName: storagePrivateDnsZoneName
-    name: storagePrivateEndpointName
-    subnetName: privateEndpointSubnetName
-    privateLinkServiceId: storage.id
-    vNetName: vNetName
-    location: location
-    dnsResourceGroupName: dnsResourceGroupName
-    vnetResourceGroupName: vnetResourceGroupName
+    principalId: myPrincipalId
+    roleName: 'Storage Account Contributor'
+    targetResourceId: storage.id
+    deploymentName: 'st-currentuser-StorageAccountContributor'
   }
 }
 

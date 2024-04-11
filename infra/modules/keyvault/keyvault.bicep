@@ -8,7 +8,6 @@ param vNetName string
 param apimManagedIdentityName string
 param aseManagedIdentityName string
 param apimServiceName string
-param myIpAddress string = ''
 param myPrincipalId string
 param dnsResourceGroupName string
 param vnetResourceGroupName string
@@ -52,10 +51,10 @@ resource keyvault 'Microsoft.KeyVault/vaults@2023-07-01' = {
     enableRbacAuthorization: true
     enableSoftDelete: false
     tenantId: subscription().tenantId
+    publicNetworkAccess: 'Disabled'
     networkAcls:{
       bypass: 'AzureServices'
       defaultAction: 'Deny'
-      ipRules: []
     }
   }
 }
@@ -80,16 +79,16 @@ module aseRoleAssignment '../roleassignments/roleassignment.bicep' = if (aseMana
   }
 }
 
-// module currentUserRoleAssignment '../roleassignments/roleassignment.bicep' = {
-//   name: 'kv-currentuser-roleAssignment'
-//   params: {
-//     principalId: myPrincipalId
-//     roleName: 'Key Vault Secrets Officer'
-//     targetResourceId: keyvault.id
-//     deploymentName: 'kv-currentuser-roleAssignment-SecretOfficer'
-//     principalType: 'User'
-//   }
-// }
+module currentUserRoleAssignment '../roleassignments/roleassignment.bicep' = {
+  name: 'kv-currentuser-roleAssignment'
+  params: {
+    principalId: myPrincipalId
+    roleName: 'Key Vault Secrets Officer'
+    targetResourceId: keyvault.id
+    deploymentName: 'kv-currentuser-roleAssignment-SecretOfficer'
+    principalType: 'User'
+  }
+}
 
 resource consumerApiKey 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   name: 'Consumer'

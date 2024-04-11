@@ -1,4 +1,5 @@
 param name string
+param wafName string
 param apimName string
 param apimFrontDoorIdNamedValueName string
 param proxyOriginHostName string
@@ -17,7 +18,6 @@ var proxyOriginName = 'ApiManagementProxy'
 var developerPortalOriginName = 'ApiManagementDeveloperPortal'
 var proxyRouteName = 'ProxyRoute'
 var developerPortalRouteName = 'DeveloperPortalRoute'
-var wafPolicyName = 'WafPolicy'
 var securityPolicyName = 'SecurityPolicy'
 
 resource apimService 'Microsoft.ApiManagement/service@2023-03-01-preview' existing = {
@@ -159,7 +159,7 @@ resource developerPortalRoute 'Microsoft.Cdn/profiles/afdEndpoints/routes@2021-0
 }
 
 resource wafPolicy 'Microsoft.Network/FrontDoorWebApplicationFirewallPolicies@2020-11-01' = {
-  name: wafPolicyName
+  name: wafName
   location: 'global'
   sku: {
     name: sku
