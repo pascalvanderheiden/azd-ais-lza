@@ -113,11 +113,11 @@ The conditional parameters set in the `azd up` command are stored in the .azure\
 > Deployment of Azure Redis Cache can take up to 30 minutes.
 
 > [!NOTE]
-> Deployment of App Service Environment v3 can take up to 30 minutes.
+> Deployment of App Service Environment v3 can take up to 3 hours!
 
 ### 3. Environment variables
 
-In the azd template, we automatically set an environment variable for your current IP address. During deployment, this allows traffic from your local machine to the App Service Environment for deploying Logic Apps and Function Apps. If you want to use a different IP address, you can set the MY_IP_ADDRESS environment variable.
+In the azd template, we automatically set an environment variable for your current IP address. During deployment, this allows traffic from your local machine to the Storage Account for deploying Logic Apps and Function Apps. If you want to use a different IP address, you can set the MY_IP_ADDRESS environment variable.
 
 ```shell
 azd env set MY_IP_ADDRESS '<your-ip-address>'
