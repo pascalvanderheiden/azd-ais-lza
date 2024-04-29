@@ -12,7 +12,6 @@ param tags object = {}
 param apimSku string
 param deployAse bool
 
-
 var webServerFarmDelegation = [
   {
     name: 'Microsoft.Web/serverFarms'
@@ -20,29 +19,7 @@ var webServerFarmDelegation = [
       serviceName: 'Microsoft.Web/serverFarms'
     }
   }
-] 
-var aseNewSubnet = {
-  name: aseSubnetName
-  properties: {
-    addressPrefix: '10.0.3.0/24'
-    networkSecurityGroup: aseNsg.id == '' ? null : {
-      id: aseNsg.id
-    }
-    delegations: [
-      {
-          name: 'Microsoft.Web.hostingEnvironments'
-          properties: {
-              serviceName: 'Microsoft.Web/hostingEnvironments'
-          }
-      }
-    ]
-    serviceEndpoints: [
-      {
-        service: 'Microsoft.Storage'
-      }
-    ]
-  }
-}
+]
 
 resource apimNsg 'Microsoft.Network/networkSecurityGroups@2020-07-01' = {
   name: apimNsgName
@@ -242,24 +219,40 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
           }
         }
       }
-      deployAse ? aseNewSubnet : {}
     ]
   }
-
   resource defaultSubnet 'subnets' existing = {
     name: 'default'
   }
-
   resource apimSubnet 'subnets' existing = {
     name: apimSubnetName
   }
-  
-  resource aseSubnet 'subnets' existing = if(deployAse){
-    name: aseSubnetName
-  }
-  
   resource privateEndpointSubnet 'subnets' existing = {
     name: privateEndpointSubnetName
+  }
+}
+
+resource aseSubnet 'Microsoft.Network/virtualNetworks/subnets@2023-04-01' = if(deployAse) {
+  name: aseSubnetName
+  parent: virtualNetwork
+  properties: {
+    addressPrefix: '10.0.3.0/24'
+    networkSecurityGroup: !deployAse ? null : {
+      id: aseNsg.id
+    }
+    delegations: [
+      {
+          name: 'Microsoft.Web.hostingEnvironments'
+          properties: {
+              serviceName: 'Microsoft.Web/hostingEnvironments'
+          }
+      }
+    ]
+    serviceEndpoints: [
+      {
+        service: 'Microsoft.Storage'
+      }
+    ]
   }
 }
 
@@ -278,7 +271,7 @@ output virtualNetworkId string = virtualNetwork.id
 output vnetName string = virtualNetwork.name
 output apimSubnetName string = virtualNetwork::apimSubnet.name
 output apimSubnetId string = virtualNetwork::apimSubnet.id
-output aseSubnetName string = virtualNetwork::aseSubnet.name
-output aseSubnetId string = virtualNetwork::aseSubnet.id
+output aseSubnetName string = deployAse ? aseSubnet.name : ''
+output aseSubnetId string = deployAse ? aseSubnet.id : ''
 output privateEndpointSubnetName string = virtualNetwork::privateEndpointSubnet.name
 output privateEndpointSubnetId string = virtualNetwork::privateEndpointSubnet.id

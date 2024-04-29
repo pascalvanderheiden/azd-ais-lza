@@ -61,9 +61,9 @@ module apimRoleAssignment '../roleassignments/roleassignment.bicep' = {
 module aseRoleAssignment '../roleassignments/roleassignment.bicep' = if (aseManagedIdentityName != ''){
   name: 'kv-ase-roleAssignment'
   params: {
-    principalId: aseManagedIdentity.properties.principalId
+    principalId: (aseManagedIdentityName != '') ? aseManagedIdentity.properties.principalId : ''
     roleName: 'Key Vault Secrets User'
-    targetResourceId: keyvault.id
+    targetResourceId: (aseManagedIdentityName != '') ? keyvault.id : ''
     deploymentName: 'kv-ase-roleAssignment-SecretsUser'
   }
 }

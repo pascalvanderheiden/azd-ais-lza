@@ -44,9 +44,9 @@ module privateEndpoint '../networking/private-endpoint.bicep' = {
 module sbReceiverRoleAssignment '../roleassignments/roleassignment.bicep' = if (aseManagedIdentityName != ''){
   name: 'sb-ase-receiver-roleAssignment'
   params: {
-    principalId: aseManagedIdentity.properties.principalId
+    principalId: (aseManagedIdentityName != '') ? aseManagedIdentity.properties.principalId : ''
     roleName: 'Service Bus Data Receiver'
-    targetResourceId: serviceBus.id
+    targetResourceId: (aseManagedIdentityName != '') ? serviceBus.id : ''
     deploymentName: 'sb-ase-roleAssignment-DataReceiver'
   }
 }

@@ -53,9 +53,9 @@ resource fileShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2023-0
 module stReaderRoleAssignment '../roleassignments/roleassignment.bicep' = if (aseManagedIdentityName != ''){
   name: 'st-ase-reader-roleAssignment'
   params: {
-    principalId: aseManagedIdentity.properties.principalId
+    principalId: (aseManagedIdentityName != '') ? aseManagedIdentity.properties.principalId : ''
     roleName: 'Storage Blob Data Reader'
-    targetResourceId: storage.id
+    targetResourceId: (aseManagedIdentityName != '') ? storage.id : ''
     deploymentName: 'st-ase-roleAssignment-DataReader'
   }
 }
@@ -63,9 +63,9 @@ module stReaderRoleAssignment '../roleassignments/roleassignment.bicep' = if (as
 module stContributorRoleAssignment '../roleassignments/roleassignment.bicep' = if (aseManagedIdentityName != ''){
   name: 'st-ase-contributor-roleAssignment'
   params: {
-    principalId: aseManagedIdentity.properties.principalId
+    principalId: (aseManagedIdentityName != '') ? aseManagedIdentity.properties.principalId : ''
     roleName: 'Storage Blob Data Contributor'
-    targetResourceId: storage.id
+    targetResourceId: (aseManagedIdentityName != '') ? storage.id : ''
     deploymentName: 'st-ase-roleAssignment-DataContributor'
   }
 }
