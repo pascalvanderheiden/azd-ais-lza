@@ -35,15 +35,12 @@
                 "DotJoshJohnson.xml",
                 "kirchner-trevor.shopify-liquid-preview",
                 "formulahendry.azure-storage-explorer",
-                "Summer.azure-event-hub-explorer",
                 "digital-molecules.service-bus-explorer",
-                "irarainey.applicationregistrations",
                 "GraphQL.vscode-graphql"
             ]
         }
     },
     "forwardPorts": [8080,7071,3000],
-    "postCreateCommand": "sh .devcontainer/postCreate.sh",
     "remoteUser": "root",
     "hostRequirements": {
         "memory": "8gb"

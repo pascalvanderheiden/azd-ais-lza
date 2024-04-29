@@ -41,7 +41,7 @@ param deployAse bool
 })
 param deployServiceBus bool
 
-@description('Use Redis Cache for Azure API Management')
+@description('Deploy Redis Cache for Azure API Management')
 @metadata({
   azd: {
     type: 'boolean'
@@ -114,11 +114,8 @@ param fileShareName string = ''
 param calcRestServiceName string = ''
 
 // Tags that should be applied to all resources.
-// 
-// Note that 'azd-service-name' tags should be applied separately to service host resources.
-// Example usage:
-//   tags: union(tags, { 'azd-service-name': <service name in azure.yaml> })
 var tags = { 'azd-env-name': environmentName }
+
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 var apimFrontDoorIdNamedValueName = 'frontDoorId'
@@ -126,13 +123,11 @@ var monitorPrivateDnsZoneName = 'privatelink.monitor.azure.com'
 var redisCachePrivateDnsZoneName = 'privatelink.redis.cache.windows.net'
 var keyvaultPrivateDnsZoneName = 'privatelink.vaultcore.azure.net'
 var serviceBusPrivateDnsZoneName = 'privatelink.servicebus.windows.net'
-var asePrivateDnsZoneName = 'privatelink.appserviceenvironment.net'
 var privateDnsZoneNames = [
   monitorPrivateDnsZoneName
   redisCachePrivateDnsZoneName
   keyvaultPrivateDnsZoneName
   serviceBusPrivateDnsZoneName
-  asePrivateDnsZoneName
 ]
 
 resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
@@ -194,10 +189,10 @@ module redisCache './modules/cache/redis.bicep' = if(deployRedisCache){
     sku: 'Basic'
     capacity: 1
     redisCachePrivateEndpointName: '${abbrs.cacheRedis}${abbrs.privateEndpoints}${resourceToken}'
-    vNetName: vnet.outputs.vnetName
-    privateEndpointSubnetName: vnet.outputs.privateEndpointSubnetName
+    vNetName: deployRedisCache ? vnet.outputs.vnetName : ''
+    privateEndpointSubnetName: deployRedisCache ? vnet.outputs.privateEndpointSubnetName : ''
     redisCacheDnsZoneName: redisCachePrivateDnsZoneName
-    apimServiceName: apim.outputs.apimName
+    apimServiceName: deployRedisCache ? apim.outputs.apimName : ''
   }
 }
 
@@ -295,9 +290,6 @@ module keyvault './modules/keyvault/keyvault.bicep' = {
     keyvaultPrivateDnsZoneName: keyvaultPrivateDnsZoneName
     apimServiceName: apim.outputs.apimName
     myPrincipalId: myPrincipalId
-    dnsResourceGroupName: rg.name
-    vnetResourceGroupName: rg.name
-    apimResourceGroupName: rg.name
     logAnalyticsWorkspaceIdForDiagnostics : monitoring.outputs.logAnalyticsWorkspaceId
   }
 }
@@ -311,13 +303,13 @@ module frontDoor './modules/networking/front-door.bicep' = if(deployFrontDoor){
     sku: frontDoorSku
     proxyEndpointName: !empty(frontDoorProxyEndpointName) ? frontDoorProxyEndpointName : 'afd-proxy-${abbrs.networkFrontDoors}${resourceToken}'
     developerPortalEndpointName: !empty(frontDoorDeveloperPortalEndpointName) ? frontDoorDeveloperPortalEndpointName : 'afd-portal-${abbrs.networkFrontDoors}${resourceToken}'
-    proxyOriginHostName: apim.outputs.apimProxyHostName
+    proxyOriginHostName: deployFrontDoor ? apim.outputs.apimProxyHostName : ''
     developerPortalOriginHostName: deployApimDevPortal ? apim.outputs.apimDeveloperPortalHostName : ''
-    apimName: apim.outputs.apimName
+    apimName: deployFrontDoor ? apim.outputs.apimName : ''
     wafMode: wafMode
     wafManagedRuleSets: wafManagedRuleSets
     apimFrontDoorIdNamedValueName: apimFrontDoorIdNamedValueName
-    logAnalyticsWorkspaceIdForDiagnostics : monitoring.outputs.logAnalyticsWorkspaceId
+    logAnalyticsWorkspaceIdForDiagnostics : deployFrontDoor ? monitoring.outputs.logAnalyticsWorkspaceId : ''
   }
 }
 
@@ -328,9 +320,9 @@ module ase './modules/host/ase_asp.bicep' = if(deployAse){
     name: !empty(appServiceEnvironmentName) ? appServiceEnvironmentName : '${abbrs.webSitesAppServiceEnvironment}${resourceToken}'
     aspName: !empty(appServicePlanName) ? appServicePlanName : '${abbrs.webServerFarms}${resourceToken}'
     location: location
-    virtualNetworkId: vnet.outputs.aseSubnetId
-    subnetName: vnet.outputs.aseSubnetName
-    aseManagedIdentityName: managedIdentityAse.outputs.managedIdentityName
+    virtualNetworkId: deployAse ? vnet.outputs.aseSubnetId : ''
+    subnetName: deployAse ? vnet.outputs.aseSubnetName : ''
+    aseManagedIdentityName: deployAse ? managedIdentityAse.outputs.managedIdentityName : ''
   }
 }
 
@@ -342,20 +334,17 @@ module serviceBus './modules/servicebus/servicebus.bicep' = if(deployServiceBus)
     location: location
     serviceBusPrivateDnsZoneName : serviceBusPrivateDnsZoneName
     serviceBusPrivateEndpointName : '${abbrs.serviceBusNamespaces}${abbrs.privateEndpoints}${resourceToken}'
-    privateEndpointSubnetName : vnet.outputs.privateEndpointSubnetName
-    vNetName : vnet.outputs.vnetName
+    privateEndpointSubnetName : deployServiceBus ? vnet.outputs.privateEndpointSubnetName : ''
+    vNetName : deployServiceBus ? vnet.outputs.vnetName : ''
     aseManagedIdentityName : deployAse ? managedIdentityAse.outputs.managedIdentityName : ''
-    dnsResourceGroupName : rg.name
-    vnetResourceGroupName : rg.name
   }
 }
 
 output TENANT_ID string = subscription().tenantId
 output DEPLOYMENT_LOCATION string = location
 output APIM_NAME string = apim.outputs.apimName
-output FRONTDOOR_NAME string = frontDoor.outputs.frontDoorName
+output FRONTDOOR_NAME string = deployFrontDoor ? frontDoor.outputs.frontDoorName : ''
 output RESOURCE_TOKEN string = resourceToken
-output APPLICATIONINSIGHTS_CONNECTION_STRING string = monitoring.outputs.applicationInsightsConnectionString
 output DEPLOY_FRONTDOOR bool = deployFrontDoor
 output DEPLOY_ASE bool = deployAse
 output DEPLOY_SERVICEBUS bool = deployServiceBus

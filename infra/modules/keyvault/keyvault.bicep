@@ -9,21 +9,10 @@ param apimManagedIdentityName string
 param aseManagedIdentityName string
 param apimServiceName string
 param myPrincipalId string
-param dnsResourceGroupName string
-param vnetResourceGroupName string
-param apimResourceGroupName string
 param logAnalyticsWorkspaceIdForDiagnostics string
-
-
-resource rgApim 'Microsoft.Resources/resourceGroups@2023-07-01' existing = {
-  name: apimResourceGroupName
-  scope: subscription()
-}
-
 
 resource apimService 'Microsoft.ApiManagement/service@2023-03-01-preview' existing = {
   name: apimServiceName
-  scope: rgApim
 }
 
 resource apimConsumerSubscription 'Microsoft.ApiManagement/service/subscriptions@2021-08-01' existing = {
@@ -115,8 +104,6 @@ module privateEndpoint '../networking/private-endpoint.bicep' = {
     privateLinkServiceId: keyvault.id
     vNetName: vNetName
     location: location
-    dnsResourceGroupName: dnsResourceGroupName
-    vnetResourceGroupName: vnetResourceGroupName
   }
 }
 

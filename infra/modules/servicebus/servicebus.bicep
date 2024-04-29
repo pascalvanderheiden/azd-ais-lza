@@ -6,8 +6,6 @@ param serviceBusPrivateEndpointName string
 param privateEndpointSubnetName string
 param vNetName string
 param aseManagedIdentityName string
-param dnsResourceGroupName string
-param vnetResourceGroupName string
 
 var sku = 'Premium'
 
@@ -40,8 +38,6 @@ module privateEndpoint '../networking/private-endpoint.bicep' = {
     privateLinkServiceId: serviceBus.id
     vNetName: vNetName
     location: location
-    dnsResourceGroupName: dnsResourceGroupName
-    vnetResourceGroupName: vnetResourceGroupName
   }
 }
 
