@@ -36,12 +36,12 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
           value: myIpAddress
         }
       ]
-      virtualNetworkRules: [
+      virtualNetworkRules: (aseSubnetName != '') ? [
         {
           action: 'Allow'
-          id: aseSubnet.id
+          id: (aseSubnetName != '') ? aseSubnet.id : ''
         }
-      ]
+      ] : []
     }
   }
 }

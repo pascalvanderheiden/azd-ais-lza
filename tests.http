@@ -3,7 +3,7 @@
 @subscriptionKeyConsumer = <your-consumer-subscription-key>
 
 ### Test Front door health check for API Management backend
-GET https://{{frontDoorName}}.azurefd.net/status-0123456789abcdef
+GET http://{{frontDoorName}}.azurefd.net/status-0123456789abcdef
 
 ### Test Azure API Management endpoint, with Consumer subscription key (should fail)
 GET https://{{apimName}}.azure-api.net/calc/add?a=51&b=49

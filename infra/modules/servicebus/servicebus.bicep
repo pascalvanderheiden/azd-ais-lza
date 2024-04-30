@@ -54,9 +54,9 @@ module sbReceiverRoleAssignment '../roleassignments/roleassignment.bicep' = if (
 module sbSenderRoleAssignment '../roleassignments/roleassignment.bicep' = if (aseManagedIdentityName != ''){
   name: 'sb-ase-sender-roleAssignment'
   params: {
-    principalId: aseManagedIdentity.properties.principalId
+    principalId: (aseManagedIdentityName != '') ? aseManagedIdentity.properties.principalId : ''
     roleName: 'Service Bus Data Sender'
-    targetResourceId: serviceBus.id
+    targetResourceId: (aseManagedIdentityName != '') ? serviceBus.id : ''
     deploymentName: 'sb-ase-roleAssignment-DataSender'
   }
 }
