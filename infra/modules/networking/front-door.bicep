@@ -52,10 +52,10 @@ resource proxyOriginGroup 'Microsoft.Cdn/profiles/originGroups@2021-06-01' = {
       successfulSamplesRequired: 3
     }
     healthProbeSettings: {
-      probePath: '/'
-      probeRequestType: 'HEAD'
-      probeProtocol: 'Http'
-      probeIntervalInSeconds: 100
+      probePath: '/status-0123456789abcdef'
+      probeRequestType: 'GET'
+      probeProtocol: 'Https'
+      probeIntervalInSeconds: 30
     }
   }
 }
@@ -114,10 +114,10 @@ resource developerPortalOriginGroup 'Microsoft.Cdn/profiles/originGroups@2021-06
       successfulSamplesRequired: 3
     }
     healthProbeSettings: {
-      probePath: '/'
-      probeRequestType: 'HEAD'
-      probeProtocol: 'Http'
-      probeIntervalInSeconds: 100
+      probePath: '/status-0123456789abcdef'
+      probeRequestType: 'GET'
+      probeProtocol: 'Https'
+      probeIntervalInSeconds: 30
     }
   }
 }
