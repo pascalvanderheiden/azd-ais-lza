@@ -5,8 +5,17 @@ param aseSubnetName string
 param storageSku string 
 param aseManagedIdentityName string
 param fileShareName string
-param myIpAddress string
 param myPrincipalId string
+param blobPrivateDnsZoneName string
+param blobPrivateEndpointName string
+param filePrivateDnsZoneName string
+param filePrivateEndpointName string
+param tablePrivateDnsZoneName string
+param tablePrivateEndpointName string
+param queuePrivateDnsZoneName string
+param queuePrivateEndpointName string
+param privateEndpointSubnetName string
+param vNetName string
 
 resource aseSubnet 'Microsoft.Network/virtualNetworks/subnets@2023-04-01' existing = if(aseSubnetName != ''){
   name: aseSubnetName
@@ -27,15 +36,11 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   properties: {
     supportsHttpsTrafficOnly: true
     allowBlobPublicAccess: false
+    publicNetworkAccess: 'Disabled'
     networkAcls:{
       bypass: 'AzureServices'
-      defaultAction: 'Allow'
-      ipRules: [
-        {
-          action: 'Allow'
-          value: myIpAddress
-        }
-      ]
+      defaultAction: 'Deny'
+      ipRules: []
       virtualNetworkRules: (aseSubnetName != '') ? [
         {
           action: 'Allow'
@@ -48,6 +53,11 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
 
 resource fileShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2023-01-01' = {
   name: '${storage.name}/default/${fileShareName}'
+  properties: {
+    accessTier: 'transactionOptimized'
+    shareQuota: 5120
+    enabledProtocols: 'SMB'
+  }
 }
 
 module stReaderRoleAssignment '../roleassignments/roleassignment.bicep' = if (aseManagedIdentityName != ''){
@@ -77,6 +87,66 @@ module currentUserRoleAssignment '../roleassignments/roleassignment.bicep' = if 
     roleName: 'Storage Account Contributor'
     targetResourceId: storage.id
     deploymentName: 'st-currentuser-StorageAccountContributor'
+  }
+}
+
+module privateEndpointBlob '../networking/private-endpoint.bicep' = {
+  name: '${storage.name}-privateEndpoint-deployment-blob'
+  params: {
+    groupIds: [
+      'blob'
+    ]
+    dnsZoneName: blobPrivateDnsZoneName
+    name: blobPrivateEndpointName
+    subnetName: privateEndpointSubnetName
+    privateLinkServiceId: storage.id
+    vNetName: vNetName
+    location: location
+  }
+}
+
+module privateEndpointFile '../networking/private-endpoint.bicep' = {
+  name: '${storage.name}-privateEndpoint-deployment-file'
+  params: {
+    groupIds: [
+      'file'
+    ]
+    dnsZoneName: filePrivateDnsZoneName
+    name: filePrivateEndpointName
+    subnetName: privateEndpointSubnetName
+    privateLinkServiceId: storage.id
+    vNetName: vNetName
+    location: location
+  }
+}
+
+module privateEndpointTable '../networking/private-endpoint.bicep' = {
+  name: '${storage.name}-privateEndpoint-deployment-table'
+  params: {
+    groupIds: [
+      'table'
+    ]
+    dnsZoneName: tablePrivateDnsZoneName
+    name: tablePrivateEndpointName
+    subnetName: privateEndpointSubnetName
+    privateLinkServiceId: storage.id
+    vNetName: vNetName
+    location: location
+  }
+}
+
+module privateEndpointQueue '../networking/private-endpoint.bicep' = {
+  name: '${storage.name}-privateEndpoint-deployment-queue'
+  params: {
+    groupIds: [
+      'queue'
+    ]
+    dnsZoneName: queuePrivateDnsZoneName
+    name: queuePrivateEndpointName
+    subnetName: privateEndpointSubnetName
+    privateLinkServiceId: storage.id
+    vNetName: vNetName
+    location: location
   }
 }
 

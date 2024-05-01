@@ -248,11 +248,13 @@ resource aseSubnet 'Microsoft.Network/virtualNetworks/subnets@2023-04-01' = if(d
           }
       }
     ]
+    /* Makes it easier to interact with storage instead of using private endpoints
     serviceEndpoints: [
       {
         service: 'Microsoft.Storage'
       }
     ]
+    */
   }
 }
 

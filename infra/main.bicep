@@ -99,7 +99,6 @@ param aseNsgName string = ''
 param privateEndpointSubnetName string = ''
 param privateEndpointNsgName string = ''
 param redisCacheServiceName string = ''
-param myIpAddress string = ''
 param myPrincipalId string = ''
 param keyVaultName string = ''
 param frontDoorName string = ''
@@ -123,11 +122,19 @@ var monitorPrivateDnsZoneName = 'privatelink.monitor.azure.com'
 var redisCachePrivateDnsZoneName = 'privatelink.redis.cache.windows.net'
 var keyvaultPrivateDnsZoneName = 'privatelink.vaultcore.azure.net'
 var serviceBusPrivateDnsZoneName = 'privatelink.servicebus.windows.net'
+var storageAccountBlobPrivateDnsZoneName = 'privatelink.blob.${az.environment().suffixes.storage}'
+var storageAccountQueuePrivateDnsZoneName = 'privatelink.queue.${az.environment().suffixes.storage}'
+var storageAccountTablePrivateDnsZoneName = 'privatelink.table.${az.environment().suffixes.storage}'
+var storageAccountFilePrivateDnsZoneName = 'privatelink.file.${az.environment().suffixes.storage}'
 var privateDnsZoneNames = [
   monitorPrivateDnsZoneName
   redisCachePrivateDnsZoneName
   keyvaultPrivateDnsZoneName
   serviceBusPrivateDnsZoneName
+  storageAccountBlobPrivateDnsZoneName
+  storageAccountQueuePrivateDnsZoneName
+  storageAccountTablePrivateDnsZoneName
+  storageAccountFilePrivateDnsZoneName
 ]
 
 resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
@@ -173,9 +180,18 @@ module storage './modules/storage/storage.bicep' = {
     storageSku: storageSku 
     aseManagedIdentityName: deployAse ? managedIdentityAse.outputs.managedIdentityName : ''
     fileShareName: !empty(fileShareName) ? fileShareName : '${abbrs.webSitesAppServiceEnvironment}${resourceToken}-share'
-    aseSubnetName: vnet.outputs.aseSubnetName
-    myIpAddress: myIpAddress
+    aseSubnetName: deployAse ? vnet.outputs.aseSubnetName : ''
     myPrincipalId: myPrincipalId
+    vNetName: vnet.outputs.vnetName
+    privateEndpointSubnetName: vnet.outputs.privateEndpointSubnetName
+    blobPrivateDnsZoneName: storageAccountBlobPrivateDnsZoneName
+    blobPrivateEndpointName: '${abbrs.storageStorageAccounts}${abbrs.privateEndpoints}${resourceToken}-blob'
+    filePrivateDnsZoneName: storageAccountFilePrivateDnsZoneName
+    filePrivateEndpointName: '${abbrs.storageStorageAccounts}${abbrs.privateEndpoints}${resourceToken}-file'
+    tablePrivateDnsZoneName: storageAccountTablePrivateDnsZoneName
+    tablePrivateEndpointName: '${abbrs.storageStorageAccounts}${abbrs.privateEndpoints}${resourceToken}-table'
+    queuePrivateDnsZoneName: storageAccountQueuePrivateDnsZoneName
+    queuePrivateEndpointName: '${abbrs.storageStorageAccounts}${abbrs.privateEndpoints}${resourceToken}-queue'
   }
 }
 
@@ -313,16 +329,29 @@ module frontDoor './modules/networking/front-door.bicep' = if(deployFrontDoor){
   }
 }
 
-module ase './modules/host/ase_asp.bicep' = if(deployAse){
+module ase './modules/host/ase.bicep' = if(deployAse){
   name: 'ase'
   scope: rg
   params: {
     name: !empty(appServiceEnvironmentName) ? appServiceEnvironmentName : '${abbrs.webSitesAppServiceEnvironment}${resourceToken}'
-    aspName: !empty(appServicePlanName) ? appServicePlanName : '${abbrs.webServerFarms}${resourceToken}'
     location: location
     virtualNetworkId: deployAse ? vnet.outputs.aseSubnetId : ''
     subnetName: deployAse ? vnet.outputs.aseSubnetName : ''
     aseManagedIdentityName: deployAse ? managedIdentityAse.outputs.managedIdentityName : ''
+  }
+}
+
+module asp './modules/host/asp.bicep' = {
+  name: 'asp'
+  scope: rg
+  params: {
+    name: !empty(appServicePlanName) ? appServicePlanName : '${abbrs.webServerFarms}${resourceToken}'
+    aseName: deployAse ? ase.outputs.aseName : ''
+    location: location
+    deployAse: deployAse
+    skuName: ''
+    skuCount: 1
+    kind: ''
   }
 }
 
