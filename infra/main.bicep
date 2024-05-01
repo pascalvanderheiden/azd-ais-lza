@@ -33,6 +33,14 @@ param deployFrontDoor bool
 })
 param deployAse bool
 
+@description('Deploy an App Service Plan')
+@metadata({
+  azd: {
+    type: 'boolean'
+  }
+})
+param deployAsp bool
+
 @description('Deploy Service Bus Namespace')
 @metadata({
   azd: {
@@ -111,6 +119,7 @@ param serviceBusName string = ''
 param storageAccountName string = ''
 param fileShareName string = ''
 param calcRestServiceName string = ''
+param aspSkuName string = deployAse ? 'I1v2' : 'WS1'
 
 // Tags that should be applied to all resources.
 var tags = { 'azd-env-name': environmentName }
@@ -341,7 +350,7 @@ module ase './modules/host/ase.bicep' = if(deployAse){
   }
 }
 
-module asp './modules/host/asp.bicep' = {
+module asp './modules/host/asp.bicep' = if(deployAsp){
   name: 'asp'
   scope: rg
   params: {
@@ -349,9 +358,8 @@ module asp './modules/host/asp.bicep' = {
     aseName: deployAse ? ase.outputs.aseName : ''
     location: location
     deployAse: deployAse
-    skuName: ''
+    skuName: aspSkuName
     skuCount: 1
-    kind: ''
   }
 }
 
