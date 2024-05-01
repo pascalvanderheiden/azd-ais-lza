@@ -1,25 +1,19 @@
 param name string
 param location string = resourceGroup().location
 param tags object = {}
-param aseSubnetName string
 param storageSku string 
 param aseManagedIdentityName string
-param fileShareName string
 param myPrincipalId string
 param blobPrivateDnsZoneName string
 param blobPrivateEndpointName string
-param filePrivateDnsZoneName string
-param filePrivateEndpointName string
 param tablePrivateDnsZoneName string
 param tablePrivateEndpointName string
 param queuePrivateDnsZoneName string
 param queuePrivateEndpointName string
+param filePrivateDnsZoneName string
+param filePrivateEndpointName string
 param privateEndpointSubnetName string
 param vNetName string
-
-resource aseSubnet 'Microsoft.Network/virtualNetworks/subnets@2023-04-01' existing = if(aseSubnetName != ''){
-  name: aseSubnetName
-}
 
 resource aseManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = if (aseManagedIdentityName != ''){
   name: aseManagedIdentityName
@@ -35,28 +29,11 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   kind: 'StorageV2'
   properties: {
     supportsHttpsTrafficOnly: true
-    allowBlobPublicAccess: false
-    publicNetworkAccess: 'Disabled'
+    allowBlobPublicAccess: true //Set true before deployment in Portal, false after deployment. Not needed for ARM Deployment
     networkAcls:{
       bypass: 'AzureServices'
-      defaultAction: 'Deny'
-      ipRules: []
-      virtualNetworkRules: (aseSubnetName != '') ? [
-        {
-          action: 'Allow'
-          id: (aseSubnetName != '') ? aseSubnet.id : ''
-        }
-      ] : []
+      defaultAction: 'Allow' //Allow before deployment in Portal, Deny after deployment. Not needed for ARM Deployment
     }
-  }
-}
-
-resource fileShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2023-01-01' = {
-  name: '${storage.name}/default/${fileShareName}'
-  properties: {
-    accessTier: 'transactionOptimized'
-    shareQuota: 5120
-    enabledProtocols: 'SMB'
   }
 }
 
@@ -105,21 +82,6 @@ module privateEndpointBlob '../networking/private-endpoint.bicep' = {
   }
 }
 
-module privateEndpointFile '../networking/private-endpoint.bicep' = {
-  name: '${storage.name}-privateEndpoint-deployment-file'
-  params: {
-    groupIds: [
-      'file'
-    ]
-    dnsZoneName: filePrivateDnsZoneName
-    name: filePrivateEndpointName
-    subnetName: privateEndpointSubnetName
-    privateLinkServiceId: storage.id
-    vNetName: vNetName
-    location: location
-  }
-}
-
 module privateEndpointTable '../networking/private-endpoint.bicep' = {
   name: '${storage.name}-privateEndpoint-deployment-table'
   params: {
@@ -128,6 +90,21 @@ module privateEndpointTable '../networking/private-endpoint.bicep' = {
     ]
     dnsZoneName: tablePrivateDnsZoneName
     name: tablePrivateEndpointName
+    subnetName: privateEndpointSubnetName
+    privateLinkServiceId: storage.id
+    vNetName: vNetName
+    location: location
+  }
+}
+
+module privateEndpointFile '../networking/private-endpoint.bicep' = {
+  name: '${storage.name}-privateEndpoint-deployment-file'
+  params: {
+    groupIds: [
+      'file'
+    ]
+    dnsZoneName: filePrivateDnsZoneName
+    name: filePrivateEndpointName
     subnetName: privateEndpointSubnetName
     privateLinkServiceId: storage.id
     vNetName: vNetName

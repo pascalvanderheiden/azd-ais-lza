@@ -4,6 +4,8 @@ param apimSubnetName string
 param apimNsgName string
 param aseSubnetName string
 param aseNsgName string
+param laSubnetName string
+param laNsgName string
 
 param privateEndpointSubnetName string
 param privateEndpointNsgName string
@@ -121,18 +123,40 @@ resource apimNsg 'Microsoft.Network/networkSecurityGroups@2020-07-01' = {
               ]
           }
       }
+    ]
+  }
+}
+
+resource laNsg 'Microsoft.Network/networkSecurityGroups@2022-09-01' = if(!deployAse){
+  name: laNsgName
+  location: location
+  properties: {
+    securityRules: [
       {
-        name: 'AllowRedis'
+        name: 'AllowVnetAzureConOutbound'
         properties: {
-          protocol: 'Tcp'
-          sourcePortRange: '*'
-          destinationPortRange: '6381-6383'
-          sourceAddressPrefix: 'VirtualNetwork'
-          destinationAddressPrefix: 'VirtualNetwork'
-          access: 'Allow'
-          priority: 170
-          direction: 'Inbound'
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationAddressPrefix: 'AzureConnectors'
+            access: 'Allow'
+            priority: 110
+            direction: 'Outbound'
         }
+      }
+      {
+          name: 'AllowVnetAzureConInbound'
+          properties: {
+              protocol: '*'
+              sourcePortRange: '*'
+              destinationPortRange: '*'
+              sourceAddressPrefix: 'AzureConnectors'
+              destinationAddressPrefix: 'VirtualNetwork'
+              access: 'Allow'
+              priority: 120
+              direction: 'Inbound'
+          }
       }
     ]
   }
@@ -232,11 +256,22 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
   }
 }
 
+resource laSubnet 'Microsoft.Network/virtualNetworks/subnets@2023-04-01' = if(!deployAse) {
+  name: laSubnetName
+  parent: virtualNetwork
+  properties: {
+    addressPrefix: '10.0.3.0/24'
+    networkSecurityGroup: !deployAse ? null : {
+      id: laNsg.id
+    }
+  }
+}
+
 resource aseSubnet 'Microsoft.Network/virtualNetworks/subnets@2023-04-01' = if(deployAse) {
   name: aseSubnetName
   parent: virtualNetwork
   properties: {
-    addressPrefix: '10.0.3.0/24'
+    addressPrefix: '10.0.4.0/24'
     networkSecurityGroup: !deployAse ? null : {
       id: aseNsg.id
     }
@@ -248,13 +283,6 @@ resource aseSubnet 'Microsoft.Network/virtualNetworks/subnets@2023-04-01' = if(d
           }
       }
     ]
-    /* Makes it easier to interact with storage instead of using private endpoints
-    serviceEndpoints: [
-      {
-        service: 'Microsoft.Storage'
-      }
-    ]
-    */
   }
 }
 
@@ -275,5 +303,7 @@ output apimSubnetName string = virtualNetwork::apimSubnet.name
 output apimSubnetId string = virtualNetwork::apimSubnet.id
 output aseSubnetName string = deployAse ? aseSubnet.name : ''
 output aseSubnetId string = deployAse ? aseSubnet.id : ''
+output laSubnetName string = !deployAse ? laSubnet.name : ''
+output laSubnetId string = !deployAse ? laSubnet.id : ''
 output privateEndpointSubnetName string = virtualNetwork::privateEndpointSubnet.name
 output privateEndpointSubnetId string = virtualNetwork::privateEndpointSubnet.id

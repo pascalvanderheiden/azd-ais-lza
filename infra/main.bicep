@@ -88,6 +88,8 @@ param apimSubnetName string = ''
 param apimNsgName string = ''
 param aseSubnetName string = ''
 param aseNsgName string = ''
+param laSubnetName string = ''
+param laNsgName string = ''
 param privateEndpointSubnetName string = ''
 param privateEndpointNsgName string = ''
 param myPrincipalId string = ''
@@ -100,7 +102,6 @@ param appServiceEnvironmentName string = ''
 param appServicePlanName string = ''
 param serviceBusName string = ''
 param storageAccountName string = ''
-param fileShareName string = ''
 param calcRestServiceName string = ''
 
 // Tags that should be applied to all resources.
@@ -168,17 +169,15 @@ module storage './modules/storage/storage.bicep' = {
     location: location
     storageSku: storageSku 
     aseManagedIdentityName: deployAse ? managedIdentityAse.outputs.managedIdentityName : ''
-    fileShareName: !empty(fileShareName) ? fileShareName : '${abbrs.webSitesAppServiceEnvironment}${resourceToken}-share'
-    aseSubnetName: deployAse ? vnet.outputs.aseSubnetName : ''
     myPrincipalId: myPrincipalId
     vNetName: vnet.outputs.vnetName
     privateEndpointSubnetName: vnet.outputs.privateEndpointSubnetName
     blobPrivateDnsZoneName: storageAccountBlobPrivateDnsZoneName
     blobPrivateEndpointName: '${abbrs.storageStorageAccounts}${abbrs.privateEndpoints}${resourceToken}-blob'
-    filePrivateDnsZoneName: storageAccountFilePrivateDnsZoneName
-    filePrivateEndpointName: '${abbrs.storageStorageAccounts}${abbrs.privateEndpoints}${resourceToken}-file'
     tablePrivateDnsZoneName: storageAccountTablePrivateDnsZoneName
     tablePrivateEndpointName: '${abbrs.storageStorageAccounts}${abbrs.privateEndpoints}${resourceToken}-table'
+    filePrivateDnsZoneName: storageAccountFilePrivateDnsZoneName
+    filePrivateEndpointName: '${abbrs.storageStorageAccounts}${abbrs.privateEndpoints}${resourceToken}-file'
     queuePrivateDnsZoneName: storageAccountQueuePrivateDnsZoneName
     queuePrivateEndpointName: '${abbrs.storageStorageAccounts}${abbrs.privateEndpoints}${resourceToken}-queue'
   }
@@ -193,6 +192,8 @@ module vnet './modules/networking/vnet.bicep' = {
     apimNsgName: !empty(apimNsgName) ? apimNsgName : '${abbrs.networkNetworkSecurityGroups}${abbrs.apiManagementService}${resourceToken}'
     aseSubnetName: !empty(aseSubnetName) ? aseSubnetName : '${abbrs.networkVirtualNetworksSubnets}${abbrs.webSitesAppServiceEnvironment}${resourceToken}'
     aseNsgName: !empty(aseNsgName) ? aseNsgName : '${abbrs.networkNetworkSecurityGroups}${abbrs.webSitesAppServiceEnvironment}${resourceToken}'
+    laSubnetName: !empty(laSubnetName) ? laSubnetName : '${abbrs.networkVirtualNetworksSubnets}la-${resourceToken}'
+    laNsgName: !empty(laNsgName) ? laNsgName : '${abbrs.networkNetworkSecurityGroups}la-${resourceToken}'
     privateEndpointSubnetName: !empty(privateEndpointSubnetName) ? privateEndpointSubnetName : '${abbrs.networkVirtualNetworksSubnets}${abbrs.privateEndpoints}${resourceToken}'
     privateEndpointNsgName: !empty(privateEndpointNsgName) ? privateEndpointNsgName : '${abbrs.networkNetworkSecurityGroups}${abbrs.privateEndpoints}${resourceToken}'
     location: location
