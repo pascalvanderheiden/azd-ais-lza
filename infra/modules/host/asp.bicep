@@ -10,15 +10,17 @@ resource hostingEnvironment 'Microsoft.Web/hostingEnvironments@2022-03-01' exist
   name: aseName
 }
 
+var properties = {
+  hostingEnvironmentProfile: {
+    id: deployAse ? hostingEnvironment.id : ''
+  }
+}
+
 resource serverFarm 'Microsoft.Web/serverfarms@2022-09-01' = {
   name: name
   location: location
   tags: union(tags, { 'azd-service-name': name })
-  properties: {
-    hostingEnvironmentProfile: {
-      id: deployAse ? hostingEnvironment.id : ''
-    }
-  }
+  properties: deployAse ? properties : {}
   sku: {
     name: skuName
     capacity: skuCount

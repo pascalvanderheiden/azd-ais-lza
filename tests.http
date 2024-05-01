@@ -1,14 +1,14 @@
 @apimName = <your-api-management-name>
-@frontDoorGwName = <your-frontdoor-name>
+@frontDoorGwEndpoint = <your-frontdoor-gateway-endpoint>
 @subscriptionKeyConsumer = <your-consumer-subscription-key>
 
 ### Test Front door health check for API Management Gateway
-GET https://{{frontDoorGwName}}.azurefd.net/status-0123456789abcdef
+GET https://{{frontDoorGwEndpoint}}/status-0123456789abcdef
 
 ### Test Azure API Management endpoint, with Consumer subscription key (should fail)
 GET https://{{apimName}}.azure-api.net/calc/add?a=51&b=49
 api-key: {{subscriptionKeyConsumer}}
 
 ### Test Front Door endpoint, with Consumer subscription key (should succeed)
-GET https://{{frontDoorGwName}}.azurefd.net/calc/add?a=51&b=49
+GET https://{{frontDoorGwEndpoint}}/calc/add?a=51&b=49
 api-key: {{subscriptionKeyConsumer}}

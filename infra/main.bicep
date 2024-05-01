@@ -33,14 +33,6 @@ param deployFrontDoor bool
 })
 param deployAse bool
 
-@description('Deploy an App Service Plan')
-@metadata({
-  azd: {
-    type: 'boolean'
-  }
-})
-param deployAsp bool
-
 @description('Deploy Service Bus Namespace')
 @metadata({
   azd: {
@@ -48,14 +40,6 @@ param deployAsp bool
   }
 })
 param deployServiceBus bool
-
-@description('Deploy Redis Cache for Azure API Management')
-@metadata({
-  azd: {
-    type: 'boolean'
-  }
-})
-param deployRedisCache bool
 
 @description('Front Door SKU.')
 @allowed([
@@ -106,7 +90,6 @@ param aseSubnetName string = ''
 param aseNsgName string = ''
 param privateEndpointSubnetName string = ''
 param privateEndpointNsgName string = ''
-param redisCacheServiceName string = ''
 param myPrincipalId string = ''
 param keyVaultName string = ''
 param frontDoorName string = ''
@@ -119,7 +102,6 @@ param serviceBusName string = ''
 param storageAccountName string = ''
 param fileShareName string = ''
 param calcRestServiceName string = ''
-param aspSkuName string = deployAse ? 'I1v2' : 'WS1'
 
 // Tags that should be applied to all resources.
 var tags = { 'azd-env-name': environmentName }
@@ -128,7 +110,6 @@ var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 var apimFrontDoorIdNamedValueName = 'frontDoorId'
 var monitorPrivateDnsZoneName = 'privatelink.monitor.azure.com'
-var redisCachePrivateDnsZoneName = 'privatelink.redis.cache.windows.net'
 var keyvaultPrivateDnsZoneName = 'privatelink.vaultcore.azure.net'
 var serviceBusPrivateDnsZoneName = 'privatelink.servicebus.windows.net'
 var storageAccountBlobPrivateDnsZoneName = 'privatelink.blob.${az.environment().suffixes.storage}'
@@ -137,7 +118,6 @@ var storageAccountTablePrivateDnsZoneName = 'privatelink.table.${az.environment(
 var storageAccountFilePrivateDnsZoneName = 'privatelink.file.${az.environment().suffixes.storage}'
 var privateDnsZoneNames = [
   monitorPrivateDnsZoneName
-  redisCachePrivateDnsZoneName
   keyvaultPrivateDnsZoneName
   serviceBusPrivateDnsZoneName
   storageAccountBlobPrivateDnsZoneName
@@ -201,23 +181,6 @@ module storage './modules/storage/storage.bicep' = {
     tablePrivateEndpointName: '${abbrs.storageStorageAccounts}${abbrs.privateEndpoints}${resourceToken}-table'
     queuePrivateDnsZoneName: storageAccountQueuePrivateDnsZoneName
     queuePrivateEndpointName: '${abbrs.storageStorageAccounts}${abbrs.privateEndpoints}${resourceToken}-queue'
-  }
-}
-
-module redisCache './modules/cache/redis.bicep' = if(deployRedisCache){
-  name: 'redis-cache'
-  scope: rg
-  params: {
-    name: !empty(redisCacheServiceName) ? redisCacheServiceName : '${abbrs.cacheRedis}${resourceToken}'
-    location: location
-    tags: tags
-    sku: 'Basic'
-    capacity: 1
-    redisCachePrivateEndpointName: '${abbrs.cacheRedis}${abbrs.privateEndpoints}${resourceToken}'
-    vNetName: deployRedisCache ? vnet.outputs.vnetName : ''
-    privateEndpointSubnetName: deployRedisCache ? vnet.outputs.privateEndpointSubnetName : ''
-    redisCacheDnsZoneName: redisCachePrivateDnsZoneName
-    apimServiceName: deployRedisCache ? apim.outputs.apimName : ''
   }
 }
 
@@ -350,7 +313,7 @@ module ase './modules/host/ase.bicep' = if(deployAse){
   }
 }
 
-module asp './modules/host/asp.bicep' = if(deployAsp){
+module asp './modules/host/asp.bicep' = {
   name: 'asp'
   scope: rg
   params: {
@@ -358,7 +321,7 @@ module asp './modules/host/asp.bicep' = if(deployAsp){
     aseName: deployAse ? ase.outputs.aseName : ''
     location: location
     deployAse: deployAse
-    skuName: aspSkuName
+    skuName: deployAse ? 'I1v2' : 'WS1'
     skuCount: 1
   }
 }
@@ -377,12 +340,18 @@ module serviceBus './modules/servicebus/servicebus.bicep' = if(deployServiceBus)
   }
 }
 
-output TENANT_ID string = subscription().tenantId
-output DEPLOYMENT_LOCATION string = location
+output RESOURCE_TOKEN string = resourceToken
+output AZURE_TENANT_ID string = subscription().tenantId
+output AZURE_LOCATION string = location
+output AZURE_SUBSCRIPTION_ID string = subscription().subscriptionId
 output APIM_NAME string = apim.outputs.apimName
 output FRONTDOOR_NAME string = deployFrontDoor ? frontDoor.outputs.frontDoorName : ''
-output RESOURCE_TOKEN string = resourceToken
+output FRONTDOOR_GATEWAY_ENDPOINT_NAME string = deployFrontDoor ? frontDoor.outputs.frontDoorProxyEndpointHostName : ''
+output FRONTDOOR_PORTAL_ENDPOINT_NAME string = deployFrontDoor ? frontDoor.outputs.frontDoorDeveloperPortalEndpointHostName : ''
+output ASE_NAME string = deployAse ? ase.outputs.aseName : ''
+output ASP_NAME string = asp.outputs.appServicePlanName
+output SERVICEBUS_NAME string = deployServiceBus ? serviceBus.outputs.serviceBusNamespaceName : ''
+output STORAGE_ACCOUNT_NAME string = storage.outputs.storageName
 output DEPLOY_FRONTDOOR bool = deployFrontDoor
 output DEPLOY_ASE bool = deployAse
 output DEPLOY_SERVICEBUS bool = deployServiceBus
-output DEPLOY_REDIS bool = deployRedisCache
