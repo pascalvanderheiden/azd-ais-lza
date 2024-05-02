@@ -161,6 +161,16 @@ module managedIdentityAse './modules/security/managed-identity.bicep' = if(deplo
   }
 }
 
+module managedIdentityFrontDoor './modules/security/managed-identity.bicep' = if(deployFrontDoor){
+  name: 'managed-identity-front-door'
+  scope: rg
+  params: {
+    name: !empty(aseIdentityName) ? aseIdentityName : '${abbrs.managedIdentityUserAssignedIdentities}${resourceToken}-fd'
+    location: location
+    tags: tags
+  }
+}
+
 module storage './modules/storage/storage.bicep' = {
   name: 'storage'
   scope: rg
@@ -273,6 +283,7 @@ module keyvault './modules/keyvault/keyvault.bicep' = {
     location: location
     apimManagedIdentityName: managedIdentityApim.outputs.managedIdentityName
     aseManagedIdentityName: deployAse ? managedIdentityAse.outputs.managedIdentityName : ''
+    fdManagedIdentityName: deployFrontDoor ? managedIdentityFrontDoor.outputs.managedIdentityName : ''
     vNetName: vnet.outputs.vnetName
     privateEndpointSubnetName: vnet.outputs.privateEndpointSubnetName
     keyvaultPrivateEndpointName: '${abbrs.keyVaultVaults}${abbrs.privateEndpoints}${resourceToken}'
@@ -299,6 +310,7 @@ module frontDoor './modules/networking/front-door.bicep' = if(deployFrontDoor){
     wafManagedRuleSets: wafManagedRuleSets
     apimFrontDoorIdNamedValueName: apimFrontDoorIdNamedValueName
     logAnalyticsWorkspaceIdForDiagnostics : deployFrontDoor ? monitoring.outputs.logAnalyticsWorkspaceId : ''
+    fdManagedIdentityName: deployFrontDoor ? managedIdentityFrontDoor.outputs.managedIdentityName : ''
   }
 }
 

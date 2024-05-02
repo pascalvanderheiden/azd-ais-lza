@@ -7,6 +7,7 @@ param privateEndpointSubnetName string
 param vNetName string
 param apimManagedIdentityName string
 param aseManagedIdentityName string
+param fdManagedIdentityName string
 param apimServiceName string
 param myPrincipalId string
 param logAnalyticsWorkspaceIdForDiagnostics string
@@ -26,6 +27,10 @@ resource apimManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2
 
 resource aseManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = if (aseManagedIdentityName != ''){
   name: aseManagedIdentityName
+}
+
+resource fdManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = if (fdManagedIdentityName != ''){
+  name: fdManagedIdentityName
 }
 
 resource keyvault 'Microsoft.KeyVault/vaults@2023-07-01' = {
@@ -64,6 +69,16 @@ module aseRoleAssignment '../roleassignments/roleassignment.bicep' = if (aseMana
     principalId: (aseManagedIdentityName != '') ? aseManagedIdentity.properties.principalId : ''
     roleName: 'Key Vault Secrets User'
     targetResourceId: (aseManagedIdentityName != '') ? keyvault.id : ''
+    deploymentName: 'kv-ase-roleAssignment-SecretsUser'
+  }
+}
+
+module fdRoleAssignment '../roleassignments/roleassignment.bicep' = if (fdManagedIdentityName != ''){
+  name: 'kv-fd-roleAssignment'
+  params: {
+    principalId: (fdManagedIdentityName != '') ? fdManagedIdentity.properties.principalId : ''
+    roleName: 'Key Vault Secrets User'
+    targetResourceId: (fdManagedIdentityName != '') ? keyvault.id : ''
     deploymentName: 'kv-ase-roleAssignment-SecretsUser'
   }
 }

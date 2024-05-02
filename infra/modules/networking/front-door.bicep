@@ -10,6 +10,7 @@ param sku string
 param logAnalyticsWorkspaceIdForDiagnostics string
 param wafMode string
 param wafManagedRuleSets array
+param fdManagedIdentityName string
 param tags object = {}
 
 var proxyOriginGroupName = 'Proxy'
@@ -24,10 +25,20 @@ resource apimService 'Microsoft.ApiManagement/service@2023-03-01-preview' existi
   name: apimName
 }
 
+resource managedIdentityFrontdoor 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = {
+  name: fdManagedIdentityName
+}
+
 resource profile 'Microsoft.Cdn/profiles@2021-06-01' = {
   name: name
   location: 'global'
   tags: union(tags, { 'azd-service-name': name })
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${managedIdentityFrontdoor.id}': {}
+    }
+  }
   sku: {
     name: sku
   }
