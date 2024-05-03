@@ -57,6 +57,10 @@ param apimSkuCount int = 1
 @allowed(['Standard_LRS','Standard_GRS','Standard_RAGRS','Standard_ZRS','Premium_LRS','Premium_ZRS','Standard_GZRS','Standard_RAGZRS'])
 param storageSku string = 'Standard_LRS'
 
+@description('Service Bus SKU.')
+@allowed(['Basic', 'Standard', 'Premium'])
+param serviceBusSku string = 'Premium'
+
 @allowed([
   'Detection'
   'Prevention'
@@ -346,6 +350,7 @@ module serviceBus './modules/servicebus/servicebus.bicep' = if(deployServiceBus)
   params: {
     name: !empty(serviceBusName) ? serviceBusName : '${abbrs.serviceBusNamespaces}${resourceToken}'
     location: location
+    sku: serviceBusSku
     serviceBusPrivateDnsZoneName : serviceBusPrivateDnsZoneName
     serviceBusPrivateEndpointName : '${abbrs.serviceBusNamespaces}${abbrs.privateEndpoints}${resourceToken}'
     privateEndpointSubnetName : deployServiceBus ? vnet.outputs.privateEndpointSubnetName : ''

@@ -99,7 +99,7 @@ resource apimLogger 'Microsoft.ApiManagement/service/loggers@2023-05-01-preview'
 }
 
 resource consumerApiKey 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: 'Consumer'
+  name: 'consumer-api-key'
   parent: keyvault
   properties: {
     attributes: {

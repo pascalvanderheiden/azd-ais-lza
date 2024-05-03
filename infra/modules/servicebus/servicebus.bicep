@@ -6,8 +6,7 @@ param serviceBusPrivateEndpointName string
 param privateEndpointSubnetName string
 param vNetName string
 param aseManagedIdentityName string
-
-var sku = 'Premium'
+param sku string
 
 resource aseManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = if (aseManagedIdentityName != ''){
   name: aseManagedIdentityName

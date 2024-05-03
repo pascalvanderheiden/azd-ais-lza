@@ -134,7 +134,7 @@ module privateEndpointQueue '../networking/private-endpoint.bicep' = {
 
 var blobStorageConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storage.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storage.id, storage.apiVersion).keys[0].value}'
 resource storageConnectionString 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: 'storageConnectionString'
+  name: 'storage-connection-string'
   parent: keyvault
   properties: {
     attributes: {
