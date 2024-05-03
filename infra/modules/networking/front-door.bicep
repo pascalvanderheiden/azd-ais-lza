@@ -29,7 +29,7 @@ resource managedIdentityFrontdoor 'Microsoft.ManagedIdentity/userAssignedIdentit
   name: fdManagedIdentityName
 }
 
-resource profile 'Microsoft.Cdn/profiles@2021-06-01' = {
+resource profile 'Microsoft.Cdn/profiles@2023-05-01' = {
   name: name
   location: 'global'
   tags: union(tags, { 'azd-service-name': name })
@@ -44,7 +44,7 @@ resource profile 'Microsoft.Cdn/profiles@2021-06-01' = {
   }
 }
 
-resource proxyEndpoint 'Microsoft.Cdn/profiles/afdEndpoints@2021-06-01' = {
+resource proxyEndpoint 'Microsoft.Cdn/profiles/afdEndpoints@2023-05-01' = {
   name: proxyEndpointName
   parent: profile
   location: 'global'
@@ -54,7 +54,7 @@ resource proxyEndpoint 'Microsoft.Cdn/profiles/afdEndpoints@2021-06-01' = {
   }
 }
 
-resource proxyOriginGroup 'Microsoft.Cdn/profiles/originGroups@2021-06-01' = {
+resource proxyOriginGroup 'Microsoft.Cdn/profiles/originGroups@2023-05-01' = {
   name: proxyOriginGroupName
   parent: profile
   properties: {
@@ -71,7 +71,7 @@ resource proxyOriginGroup 'Microsoft.Cdn/profiles/originGroups@2021-06-01' = {
   }
 }
 
-resource proxyOrigin 'Microsoft.Cdn/profiles/originGroups/origins@2021-06-01' = {
+resource proxyOrigin 'Microsoft.Cdn/profiles/originGroups/origins@2023-05-01' = {
   name: proxyOriginName
   parent: proxyOriginGroup
   properties: {
@@ -84,7 +84,7 @@ resource proxyOrigin 'Microsoft.Cdn/profiles/originGroups/origins@2021-06-01' = 
   }
 }
 
-resource proxyRoute 'Microsoft.Cdn/profiles/afdEndpoints/routes@2021-06-01' = {
+resource proxyRoute 'Microsoft.Cdn/profiles/afdEndpoints/routes@2023-05-01' = {
   name: proxyRouteName
   parent: proxyEndpoint
   dependsOn: [
@@ -107,7 +107,7 @@ resource proxyRoute 'Microsoft.Cdn/profiles/afdEndpoints/routes@2021-06-01' = {
   }
 }
 
-resource developerPortalEndpoint 'Microsoft.Cdn/profiles/afdEndpoints@2021-06-01' = {
+resource developerPortalEndpoint 'Microsoft.Cdn/profiles/afdEndpoints@2023-05-01' = {
   name: developerPortalEndpointName
   parent: profile
   location: 'global'
@@ -116,7 +116,7 @@ resource developerPortalEndpoint 'Microsoft.Cdn/profiles/afdEndpoints@2021-06-01
   }
 }
 
-resource developerPortalOriginGroup 'Microsoft.Cdn/profiles/originGroups@2021-06-01' = {
+resource developerPortalOriginGroup 'Microsoft.Cdn/profiles/originGroups@2023-05-01' = {
   name: developerPortalOriginGroupName
   parent: profile
   properties: {
@@ -133,7 +133,7 @@ resource developerPortalOriginGroup 'Microsoft.Cdn/profiles/originGroups@2021-06
   }
 }
 
-resource developerPortalOrigin 'Microsoft.Cdn/profiles/originGroups/origins@2021-06-01' = if(developerPortalOriginHostName != ''){
+resource developerPortalOrigin 'Microsoft.Cdn/profiles/originGroups/origins@2023-05-01' = if(developerPortalOriginHostName != ''){
   name: developerPortalOriginName
   parent: developerPortalOriginGroup
   properties: {
@@ -146,7 +146,7 @@ resource developerPortalOrigin 'Microsoft.Cdn/profiles/originGroups/origins@2021
   }
 }
 
-resource developerPortalRoute 'Microsoft.Cdn/profiles/afdEndpoints/routes@2021-06-01' = if(developerPortalOriginHostName != ''){
+resource developerPortalRoute 'Microsoft.Cdn/profiles/afdEndpoints/routes@2023-05-01' = if(developerPortalOriginHostName != ''){
   name: developerPortalRouteName
   parent: developerPortalEndpoint
   dependsOn: [
@@ -169,7 +169,7 @@ resource developerPortalRoute 'Microsoft.Cdn/profiles/afdEndpoints/routes@2021-0
   }
 }
 
-resource wafPolicy 'Microsoft.Network/FrontDoorWebApplicationFirewallPolicies@2020-11-01' = {
+resource wafPolicy 'Microsoft.Network/FrontDoorWebApplicationFirewallPolicies@2022-05-01' = {
   name: wafName
   location: 'global'
   sku: {
@@ -186,7 +186,7 @@ resource wafPolicy 'Microsoft.Network/FrontDoorWebApplicationFirewallPolicies@20
   }
 }
 
-resource securityPolicy 'Microsoft.Cdn/profiles/securityPolicies@2021-06-01' = {
+resource securityPolicy 'Microsoft.Cdn/profiles/securityPolicies@2023-05-01' = {
   parent: profile
   name: securityPolicyName
   properties: {
@@ -211,7 +211,7 @@ resource securityPolicy 'Microsoft.Cdn/profiles/securityPolicies@2021-06-01' = {
   }
 }
 
-resource fdIdApimNamedValue 'Microsoft.ApiManagement/service/namedValues@2021-08-01' = {
+resource fdIdApimNamedValue 'Microsoft.ApiManagement/service/namedValues@2023-03-01-preview' = {
   name: apimFrontDoorIdNamedValueName
   parent: apimService
   properties: {
