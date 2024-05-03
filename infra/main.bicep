@@ -190,6 +190,7 @@ module storage './modules/storage/storage.bicep' = {
     filePrivateEndpointName: '${abbrs.storageStorageAccounts}${abbrs.privateEndpoints}${resourceToken}-file'
     queuePrivateDnsZoneName: storageAccountQueuePrivateDnsZoneName
     queuePrivateEndpointName: '${abbrs.storageStorageAccounts}${abbrs.privateEndpoints}${resourceToken}-queue'
+    keyVaultName: keyvault.outputs.keyvaultName
   }
 }
 
@@ -259,6 +260,7 @@ module apim './modules/apim/apim.bicep' = {
     apimManagedIdentityName: managedIdentityApim.outputs.managedIdentityName
     apimSubnetId: vnet.outputs.apimSubnetId
     deployApimDevPortal: deployApimDevPortal
+    keyVaultName: keyvault.outputs.keyvaultName
   }
 }
 
@@ -288,7 +290,6 @@ module keyvault './modules/keyvault/keyvault.bicep' = {
     privateEndpointSubnetName: vnet.outputs.privateEndpointSubnetName
     keyvaultPrivateEndpointName: '${abbrs.keyVaultVaults}${abbrs.privateEndpoints}${resourceToken}'
     keyvaultPrivateDnsZoneName: keyvaultPrivateDnsZoneName
-    apimServiceName: apim.outputs.apimName
     myPrincipalId: myPrincipalId
     logAnalyticsWorkspaceIdForDiagnostics : monitoring.outputs.logAnalyticsWorkspaceId
   }

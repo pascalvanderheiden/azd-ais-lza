@@ -14,9 +14,14 @@ param filePrivateDnsZoneName string
 param filePrivateEndpointName string
 param privateEndpointSubnetName string
 param vNetName string
+param keyVaultName string
 
 resource aseManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = if (aseManagedIdentityName != ''){
   name: aseManagedIdentityName
+}
+
+resource keyvault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
+  name: keyVaultName
 }
 
 resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
@@ -127,7 +132,19 @@ module privateEndpointQueue '../networking/private-endpoint.bicep' = {
   }
 }
 
+var blobStorageConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storage.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storage.id, storage.apiVersion).keys[0].value}'
+resource storageConnectionString 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+  name: 'storageConnectionString'
+  parent: keyvault
+  properties: {
+    attributes: {
+      enabled: true
+      
+    }
+    value: blobStorageConnectionString
+  }
+}
+
 output storageName string = storage.name
 output storageEndpoint string = storage.properties.primaryEndpoints.blob
-var blobStorageConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storage.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storage.id, storage.apiVersion).keys[0].value}'
 output storageConnectionString string = blobStorageConnectionString

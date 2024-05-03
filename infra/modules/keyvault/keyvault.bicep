@@ -8,18 +8,8 @@ param vNetName string
 param apimManagedIdentityName string
 param aseManagedIdentityName string
 param fdManagedIdentityName string
-param apimServiceName string
 param myPrincipalId string
 param logAnalyticsWorkspaceIdForDiagnostics string
-
-resource apimService 'Microsoft.ApiManagement/service@2023-03-01-preview' existing = {
-  name: apimServiceName
-}
-
-resource apimConsumerSubscription 'Microsoft.ApiManagement/service/subscriptions@2021-08-01' existing = {
-  name: 'consumer-subscription'
-  parent: apimService
-}
 
 resource apimManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = {
   name: apimManagedIdentityName
@@ -91,19 +81,6 @@ module currentUserRoleAssignment '../roleassignments/roleassignment.bicep' = {
     targetResourceId: keyvault.id
     deploymentName: 'kv-currentuser-roleAssignment-SecretOfficer'
     principalType: 'User'
-  }
-}
-
-resource consumerApiKey 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: 'Consumer'
-  parent: keyvault
-  properties: {
-    attributes: {
-      enabled: true
-      
-    }
-    
-    value: apimConsumerSubscription.listSecrets(apimConsumerSubscription.apiVersion).primaryKey
   }
 }
 

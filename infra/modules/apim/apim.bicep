@@ -11,6 +11,7 @@ param deployApimDevPortal bool
 //Vnet Integration
 param apimSubnetId string
 param virtualNetworkType string
+param keyVaultName string
 
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = {
   name: applicationInsightsName
@@ -18,6 +19,10 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing
 
 resource managedIdentityApim 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = {
   name: apimManagedIdentityName
+}
+
+resource keyvault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
+  name: keyVaultName
 }
 
 //setting explicit public IP for APIM will force stV2 instance of APIM
@@ -90,6 +95,18 @@ resource apimLogger 'Microsoft.ApiManagement/service/loggers@2023-05-01-preview'
     isBuffered: false
     loggerType: 'applicationInsights'
     resourceId: applicationInsights.id
+  }
+}
+
+resource consumerApiKey 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+  name: 'Consumer'
+  parent: keyvault
+  properties: {
+    attributes: {
+      enabled: true
+      
+    }
+    value: apiConsumerSubscription.listSecrets(apiConsumerSubscription.apiVersion).primaryKey
   }
 }
 

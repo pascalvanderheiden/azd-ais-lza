@@ -5,7 +5,7 @@
 ### Test Front door health check for API Management Gateway
 GET https://{{frontDoorGwEndpoint}}/status-0123456789abcdef
 
-### Test Azure API Management endpoint, with Consumer subscription key (should fail)
+### Test Azure API Management endpoint, with Consumer subscription key (should give 403)
 GET https://{{apimName}}.azure-api.net/calc/add?a=51&b=49
 api-key: {{subscriptionKeyConsumer}}
 
