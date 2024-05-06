@@ -34,10 +34,22 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   kind: 'StorageV2'
   properties: {
     supportsHttpsTrafficOnly: true
-    allowBlobPublicAccess: true //Set true before deployment in Portal, false after deployment. Not needed for ARM Deployment
+    allowBlobPublicAccess: false //Set true before deployment in Portal, false after deployment. Not needed for ARM Deployment
     networkAcls:{
       bypass: 'AzureServices'
-      defaultAction: 'Allow' //Allow before deployment in Portal, Deny after deployment. Not needed for ARM Deployment
+      defaultAction: 'Deny' //Allow before deployment in Portal, Deny after deployment. Not needed for ARM Deployment
+    }
+    encryption: {
+      services: {
+        blob: {
+          keyType: 'Account'
+          enabled: true
+        }
+        file: {
+          keyType: 'Account'
+          enabled: true
+        }
+      }
     }
   }
 }
