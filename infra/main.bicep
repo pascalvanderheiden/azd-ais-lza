@@ -402,3 +402,4 @@ output DEPLOY_FRONTDOOR bool = deployFrontDoor
 output DEPLOY_ASE bool = deployAse
 output DEPLOY_SERVICEBUS bool = deployServiceBus
 output DEPLOY_APIM_DEV_PORTAL bool = deployApimDevPortal
+output APPINSIGHTS_NAME string = monitoring.outputs.applicationInsightsName
