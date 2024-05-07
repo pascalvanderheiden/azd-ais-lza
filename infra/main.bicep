@@ -301,6 +301,18 @@ module keyvault './core/keyvault/keyvault.bicep' = {
     myPrincipalId: myPrincipalId
     myIpAddress: myIpAddress
     logAnalyticsWorkspaceIdForDiagnostics : monitoring.outputs.logAnalyticsWorkspaceId
+    //Service Endpoints instead of Private Endpoints
+    /*
+    virtualNetworkRules: deployAse ? [
+      {
+        id: vnet.outputs.aseSubnetId
+      }
+    ] : [
+      {
+        id: vnet.outputs.laSubnetId
+      }
+    ]
+    */
   }
 }
 
@@ -385,6 +397,7 @@ output KEYVAULT_NAME string = keyvault.outputs.keyvaultName
 output RESOURCE_GROUP_NAME string = rg.name
 output VNET_NAME string = vnet.outputs.vnetName
 output VNET_PE_SUBNET_NAME string = vnet.outputs.privateEndpointSubnetName
+output VNET_LA_SUBNET_NAME string = vnet.outputs.laSubnetName
 output DEPLOY_FRONTDOOR bool = deployFrontDoor
 output DEPLOY_ASE bool = deployAse
 output DEPLOY_SERVICEBUS bool = deployServiceBus

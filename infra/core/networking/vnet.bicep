@@ -264,6 +264,14 @@ resource laSubnet 'Microsoft.Network/virtualNetworks/subnets@2023-04-01' = if(!d
     networkSecurityGroup: !deployAse ? null : {
       id: laNsg.id
     }
+    delegations: [
+      {
+          name: 'Microsoft.Web.serverFarms'
+          properties: {
+              serviceName: 'Microsoft.Web/serverFarms'
+          }
+      }
+    ]
   }
 }
 

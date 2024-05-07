@@ -10,6 +10,7 @@ param aseManagedIdentityName string
 param myPrincipalId string
 param myIpAddress string = ''
 param logAnalyticsWorkspaceIdForDiagnostics string
+param virtualNetworkRules array = []
 
 resource apimManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = {
   name: apimManagedIdentityName
@@ -31,7 +32,6 @@ resource keyvault 'Microsoft.KeyVault/vaults@2023-07-01' = {
     enableRbacAuthorization: true
     enableSoftDelete: false
     tenantId: subscription().tenantId
-    publicNetworkAccess: 'Disabled'
     networkAcls:{
       bypass: 'AzureServices'
       defaultAction: 'Deny'
@@ -40,6 +40,8 @@ resource keyvault 'Microsoft.KeyVault/vaults@2023-07-01' = {
           value: myIpAddress
         }
       ]
+      //Use Service Endpoint instead of Private Endpoint
+      //virtualNetworkRules: virtualNetworkRules
     }
   }
 }
