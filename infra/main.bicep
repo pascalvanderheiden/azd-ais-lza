@@ -301,18 +301,6 @@ module keyvault './core/keyvault/keyvault.bicep' = {
     myPrincipalId: myPrincipalId
     myIpAddress: myIpAddress
     logAnalyticsWorkspaceIdForDiagnostics : monitoring.outputs.logAnalyticsWorkspaceId
-    //Service Endpoints instead of Private Endpoints
-    /*
-    virtualNetworkRules: deployAse ? [
-      {
-        id: vnet.outputs.aseSubnetId
-      }
-    ] : [
-      {
-        id: vnet.outputs.laSubnetId
-      }
-    ]
-    */
   }
 }
 
@@ -376,8 +364,8 @@ module serviceBus './core/servicebus/servicebus.bicep' = if(deployServiceBus){
     serviceBusPrivateEndpointName : '${abbrs.serviceBusNamespaces}${abbrs.privateEndpoints}${resourceToken}'
     privateEndpointSubnetName : deployServiceBus ? vnet.outputs.privateEndpointSubnetName : ''
     vNetName : deployServiceBus ? vnet.outputs.vnetName : ''
-    aseManagedIdentityName : deployAse ? managedIdentityAse.outputs.managedIdentityName : ''
     keyVaultName: deployServiceBus ? keyvault.outputs.keyvaultName : ''
+    myIpAddress: myIpAddress
   }
 }
 

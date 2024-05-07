@@ -10,7 +10,6 @@ param aseManagedIdentityName string
 param myPrincipalId string
 param myIpAddress string = ''
 param logAnalyticsWorkspaceIdForDiagnostics string
-param virtualNetworkRules array = []
 
 resource apimManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = {
   name: apimManagedIdentityName
@@ -29,6 +28,7 @@ resource keyvault 'Microsoft.KeyVault/vaults@2023-07-01' = {
       name: 'standard'
       family: 'A'
     }
+    enabledForTemplateDeployment: true
     enableRbacAuthorization: true
     enableSoftDelete: false
     tenantId: subscription().tenantId
@@ -37,11 +37,9 @@ resource keyvault 'Microsoft.KeyVault/vaults@2023-07-01' = {
       defaultAction: 'Deny'
       ipRules: [
         {
-          value: myIpAddress
+          value: myIpAddress //for local development
         }
       ]
-      //Use Service Endpoint instead of Private Endpoint
-      //virtualNetworkRules: virtualNetworkRules
     }
   }
 }

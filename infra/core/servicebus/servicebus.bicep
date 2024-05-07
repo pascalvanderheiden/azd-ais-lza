@@ -5,13 +5,9 @@ param serviceBusPrivateDnsZoneName string
 param serviceBusPrivateEndpointName string
 param privateEndpointSubnetName string
 param vNetName string
-param aseManagedIdentityName string
 param sku string
 param keyVaultName string
-
-resource aseManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = if (aseManagedIdentityName != ''){
-  name: aseManagedIdentityName
-}
+param myIpAddress string = ''
 
 resource serviceBus 'Microsoft.ServiceBus/namespaces@2022-01-01-preview' = {
   name: name
@@ -22,7 +18,23 @@ resource serviceBus 'Microsoft.ServiceBus/namespaces@2022-01-01-preview' = {
   }
   properties: {
     minimumTlsVersion: '1.2'
-    publicNetworkAccess: 'Disabled'
+    publicNetworkAccess: 'Enabled'
+  }
+}
+
+resource serviceBusNetworkRuleIpAddress 'Microsoft.ServiceBus/namespaces/networkRules@2022-10-01-preview' = {
+  name: '${serviceBus.name}-allow-ipaddress'
+  parent: serviceBus
+  properties: {
+    defaultAction: 'Deny'
+    publicNetworkAccess: 'Enabled'
+    virtualNetworkRules: []
+    ipRules: [
+      {
+        ipMask: myIpAddress //for local development
+        action: 'Allow'
+      }
+    ]
   }
 }
 
@@ -38,26 +50,6 @@ module privateEndpoint '../networking/private-endpoint.bicep' = {
     privateLinkServiceId: serviceBus.id
     vNetName: vNetName
     location: location
-  }
-}
-
-module sbReceiverRoleAssignment '../roleassignments/roleassignment.bicep' = if (aseManagedIdentityName != ''){
-  name: 'sb-ase-receiver-roleAssignment'
-  params: {
-    principalId: (aseManagedIdentityName != '') ? aseManagedIdentity.properties.principalId : ''
-    roleName: 'Service Bus Data Receiver'
-    targetResourceId: (aseManagedIdentityName != '') ? serviceBus.id : ''
-    deploymentName: 'sb-ase-roleAssignment-DataReceiver'
-  }
-}
-
-module sbSenderRoleAssignment '../roleassignments/roleassignment.bicep' = if (aseManagedIdentityName != ''){
-  name: 'sb-ase-sender-roleAssignment'
-  params: {
-    principalId: (aseManagedIdentityName != '') ? aseManagedIdentity.properties.principalId : ''
-    roleName: 'Service Bus Data Sender'
-    targetResourceId: (aseManagedIdentityName != '') ? serviceBus.id : ''
-    deploymentName: 'sb-ase-roleAssignment-DataSender'
   }
 }
 

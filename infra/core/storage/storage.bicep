@@ -4,7 +4,6 @@ param tags object = {}
 param storageSku string 
 param aseManagedIdentityName string
 param myIpAddress string = ''
-param myPrincipalId string
 param blobPrivateDnsZoneName string
 param blobPrivateEndpointName string
 param tablePrivateDnsZoneName string
@@ -19,10 +18,6 @@ param keyVaultName string
 
 resource aseManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = if (aseManagedIdentityName != ''){
   name: aseManagedIdentityName
-}
-
-resource keyvault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
-  name: keyVaultName
 }
 
 resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
@@ -41,7 +36,7 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
       defaultAction: 'Deny'
       ipRules: [
         {
-          value: myIpAddress
+          value: myIpAddress //for local development
         }
       ]
     }
@@ -57,36 +52,6 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
         }
       }
     }
-  }
-}
-
-module stReaderRoleAssignment '../roleassignments/roleassignment.bicep' = if (aseManagedIdentityName != ''){
-  name: 'st-ase-reader-roleAssignment'
-  params: {
-    principalId: (aseManagedIdentityName != '') ? aseManagedIdentity.properties.principalId : ''
-    roleName: 'Storage Blob Data Reader'
-    targetResourceId: (aseManagedIdentityName != '') ? storage.id : ''
-    deploymentName: 'st-ase-roleAssignment-DataReader'
-  }
-}
-
-module stContributorRoleAssignment '../roleassignments/roleassignment.bicep' = if (aseManagedIdentityName != ''){
-  name: 'st-ase-contributor-roleAssignment'
-  params: {
-    principalId: (aseManagedIdentityName != '') ? aseManagedIdentity.properties.principalId : ''
-    roleName: 'Storage Blob Data Contributor'
-    targetResourceId: (aseManagedIdentityName != '') ? storage.id : ''
-    deploymentName: 'st-ase-roleAssignment-DataContributor'
-  }
-}
-
-module currentUserRoleAssignment '../roleassignments/roleassignment.bicep' = if (aseManagedIdentityName != ''){
-  name: 'st-currentuser-roleAssignment'
-  params: {
-    principalId: myPrincipalId
-    roleName: 'Storage Account Contributor'
-    targetResourceId: storage.id
-    deploymentName: 'st-currentuser-StorageAccountContributor'
   }
 }
 
