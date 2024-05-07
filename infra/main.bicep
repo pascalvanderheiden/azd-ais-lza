@@ -137,15 +137,16 @@ resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   tags: tags
 }
 
-module dnsDeployment './modules/networking/dns.bicep' = [for privateDnsZoneName in privateDnsZoneNames: {
+module dnsDeployment './core/networking/dns.bicep' = [for privateDnsZoneName in privateDnsZoneNames: {
   name: 'dns-deployment-${privateDnsZoneName}'
   scope: rg
   params: {
     name: privateDnsZoneName
+    tags: tags
   }
 }]
 
-module managedIdentityApim './modules/security/managed-identity.bicep' = {
+module managedIdentityApim './core/security/managed-identity.bicep' = {
   name: 'managed-identity-apim'
   scope: rg
   params: {
@@ -155,7 +156,7 @@ module managedIdentityApim './modules/security/managed-identity.bicep' = {
   }
 }
 
-module managedIdentityAse './modules/security/managed-identity.bicep' = if(deployAse){
+module managedIdentityAse './core/security/managed-identity.bicep' = if(deployAse){
   name: 'managed-identity-ase'
   scope: rg
   params: {
@@ -165,7 +166,7 @@ module managedIdentityAse './modules/security/managed-identity.bicep' = if(deplo
   }
 }
 
-module managedIdentityFrontDoor './modules/security/managed-identity.bicep' = if(deployFrontDoor){
+module managedIdentityFrontDoor './core/security/managed-identity.bicep' = if(deployFrontDoor){
   name: 'managed-identity-front-door'
   scope: rg
   params: {
@@ -175,12 +176,13 @@ module managedIdentityFrontDoor './modules/security/managed-identity.bicep' = if
   }
 }
 
-module storage './modules/storage/storage.bicep' = {
+module storage './core/storage/storage.bicep' = {
   name: 'storage'
   scope: rg
   params: {
     name: !empty(storageAccountName) ? storageAccountName : '${abbrs.storageStorageAccounts}${resourceToken}'
     location: location
+    tags: tags
     storageSku: storageSku 
     aseManagedIdentityName: deployAse ? managedIdentityAse.outputs.managedIdentityName : ''
     myPrincipalId: myPrincipalId
@@ -198,7 +200,7 @@ module storage './modules/storage/storage.bicep' = {
   }
 }
 
-module vnet './modules/networking/vnet.bicep' = {
+module vnet './core/networking/vnet.bicep' = {
   name: 'vnet'
   scope: rg
   params: {
@@ -222,7 +224,7 @@ module vnet './modules/networking/vnet.bicep' = {
   ]
 }
 
-module monitoring './modules/monitor/monitoring.bicep' = {
+module monitoring './core/monitor/monitoring.bicep' = {
   name: 'monitoring'
   scope: rg
   params: {
@@ -239,7 +241,7 @@ module monitoring './modules/monitor/monitoring.bicep' = {
 }
 
 var apimService = !empty(apimServiceName) ? apimServiceName : '${abbrs.apiManagementService}${resourceToken}'
-module apimPip './modules/networking/publicip.bicep' = if(apimSku != 'StandardV2'){
+module apimPip './core/networking/publicip.bicep' = if(apimSku != 'StandardV2'){
   name: 'apim-pip'
   scope: rg
   params: {
@@ -250,7 +252,7 @@ module apimPip './modules/networking/publicip.bicep' = if(apimSku != 'StandardV2
   }
 }
 
-module apim './modules/apim/apim.bicep' = {
+module apim './core/apim/apim.bicep' = {
   name: 'apim'
   scope: rg
   params: {
@@ -268,7 +270,7 @@ module apim './modules/apim/apim.bicep' = {
   }
 }
 
-module calcRestApiService './modules/apim/openapi-link-api.bicep' = {
+module calcRestApiService './core/apim/openapi-link-api.bicep' = {
   name: 'calc-rest-api-service'
   scope: rg
   params: {
@@ -281,15 +283,15 @@ module calcRestApiService './modules/apim/openapi-link-api.bicep' = {
   }
 }
 
-module keyvault './modules/keyvault/keyvault.bicep' = {
+module keyvault './core/keyvault/keyvault.bicep' = {
   name: 'keyvault'
   scope: rg
   params: {
     name: !empty(keyVaultName) ? keyVaultName : '${abbrs.keyVaultVaults}${resourceToken}'
     location: location
+    tags: tags
     apimManagedIdentityName: managedIdentityApim.outputs.managedIdentityName
     aseManagedIdentityName: deployAse ? managedIdentityAse.outputs.managedIdentityName : ''
-    fdManagedIdentityName: deployFrontDoor ? managedIdentityFrontDoor.outputs.managedIdentityName : ''
     vNetName: vnet.outputs.vnetName
     privateEndpointSubnetName: vnet.outputs.privateEndpointSubnetName
     keyvaultPrivateEndpointName: '${abbrs.keyVaultVaults}${abbrs.privateEndpoints}${resourceToken}'
@@ -299,12 +301,13 @@ module keyvault './modules/keyvault/keyvault.bicep' = {
   }
 }
 
-module frontDoor './modules/networking/front-door.bicep' = if(deployFrontDoor){
+module frontDoor './core/networking/front-door.bicep' = if(deployFrontDoor){
   name: 'front-door'
   scope: rg
   params: {
     name: !empty(frontDoorName) ? frontDoorName : '${abbrs.networkFrontDoors}${resourceToken}'
     wafName: !empty(wafName) ? wafName : 'waf${resourceToken}'
+    tags: tags
     sku: frontDoorSku
     proxyEndpointName: !empty(frontDoorProxyEndpointName) ? frontDoorProxyEndpointName : 'afd-proxy-${abbrs.networkFrontDoors}${resourceToken}'
     developerPortalEndpointName: !empty(frontDoorDeveloperPortalEndpointName) ? frontDoorDeveloperPortalEndpointName : 'afd-portal-${abbrs.networkFrontDoors}${resourceToken}'
@@ -319,24 +322,26 @@ module frontDoor './modules/networking/front-door.bicep' = if(deployFrontDoor){
   }
 }
 
-module ase './modules/host/ase.bicep' = if(deployAse){
+module ase './core/host/ase.bicep' = if(deployAse){
   name: 'ase'
   scope: rg
   params: {
     name: !empty(appServiceEnvironmentName) ? appServiceEnvironmentName : '${abbrs.webSitesAppServiceEnvironment}${resourceToken}'
     location: location
+    tags: tags
     virtualNetworkId: deployAse ? vnet.outputs.aseSubnetId : ''
     subnetName: deployAse ? vnet.outputs.aseSubnetName : ''
     aseManagedIdentityName: deployAse ? managedIdentityAse.outputs.managedIdentityName : ''
   }
 }
 
-module asp './modules/host/asp.bicep' = {
+module asp './core/host/asp.bicep' = {
   name: 'asp'
   scope: rg
   params: {
     name: !empty(appServicePlanName) ? appServicePlanName : '${abbrs.webServerFarms}${resourceToken}'
     aseName: deployAse ? ase.outputs.aseName : ''
+    tags: tags
     location: location
     deployAse: deployAse
     skuName: deployAse ? 'I1v2' : 'WS1'
@@ -344,12 +349,13 @@ module asp './modules/host/asp.bicep' = {
   }
 }
 
-module serviceBus './modules/servicebus/servicebus.bicep' = if(deployServiceBus){
+module serviceBus './core/servicebus/servicebus.bicep' = if(deployServiceBus){
   name: 'servicebus'
   scope: rg
   params: {
     name: !empty(serviceBusName) ? serviceBusName : '${abbrs.serviceBusNamespaces}${resourceToken}'
     location: location
+    tags: tags
     sku: serviceBusSku
     serviceBusPrivateDnsZoneName : serviceBusPrivateDnsZoneName
     serviceBusPrivateEndpointName : '${abbrs.serviceBusNamespaces}${abbrs.privateEndpoints}${resourceToken}'

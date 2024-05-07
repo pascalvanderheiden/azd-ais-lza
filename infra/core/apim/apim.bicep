@@ -98,18 +98,6 @@ resource apimLogger 'Microsoft.ApiManagement/service/loggers@2023-05-01-preview'
   }
 }
 
-resource consumerApiKey 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: 'consumer-api-key'
-  parent: keyvault
-  properties: {
-    attributes: {
-      enabled: true
-      
-    }
-    value: apiConsumerSubscription.listSecrets(apiConsumerSubscription.apiVersion).primaryKey
-  }
-}
-
 output apimName string = apimService.name
 output apimLoggerName string = apimLogger.name
 output apimProxyHostName string = apimService.properties.hostnameConfigurations[0].hostName

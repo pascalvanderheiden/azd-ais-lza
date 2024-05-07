@@ -43,13 +43,6 @@ resource asev3config 'Microsoft.Web/hostingEnvironments/configurations@2022-03-0
   }
 }
 
-module dnsDeployment '../networking/dns.bicep' = {
-  name: 'dns-deployment-${privateDnsZoneName}'
-  params: {
-    name: privateDnsZoneName
-  }
-}
-
 module webrecord '../networking/dnsentry.bicep' = {
   name: 'dns-entry-ase-webrecord'
   params: {
