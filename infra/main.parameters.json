@@ -8,6 +8,9 @@
       "location": {
         "value": "${AZURE_LOCATION}"
       },
+      "myIpAddress": {
+        "value": "${MY_IP_ADDRESS}"
+      },
       "myPrincipalId": {
         "value": "${MY_USER_ID}"
       }

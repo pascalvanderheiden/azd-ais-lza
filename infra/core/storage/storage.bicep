@@ -3,6 +3,7 @@ param location string = resourceGroup().location
 param tags object = {}
 param storageSku string 
 param aseManagedIdentityName string
+param myIpAddress string = ''
 param myPrincipalId string
 param blobPrivateDnsZoneName string
 param blobPrivateEndpointName string
@@ -38,6 +39,11 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
     networkAcls:{
       bypass: 'AzureServices'
       defaultAction: 'Deny'
+      ipRules: [
+        {
+          value: myIpAddress
+        }
+      ]
     }
     encryption: {
       services: {
@@ -145,15 +151,12 @@ module privateEndpointQueue '../networking/private-endpoint.bicep' = {
 }
 
 var blobStorageConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storage.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storage.id, storage.apiVersion).keys[0].value}'
-resource storageConnectionString 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: 'storage-connection-string'
-  parent: keyvault
-  properties: {
-    attributes: {
-      enabled: true
-      
-    }
-    value: blobStorageConnectionString
+module keyvaultSecretConnectionString '../keyvault/keyvault-secret.bicep' = {
+  name: '${storage.name}-connectionstring-deployment-keyvault'
+  params: {
+    keyVaultName: keyVaultName
+    secretName: 'storage-connection-string'
+    secretValue: blobStorageConnectionString
   }
 }
 

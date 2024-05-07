@@ -96,6 +96,7 @@ param laSubnetName string = ''
 param laNsgName string = ''
 param privateEndpointSubnetName string = ''
 param privateEndpointNsgName string = ''
+param myIpAddress string = ''
 param myPrincipalId string = ''
 param keyVaultName string = ''
 param frontDoorName string = ''
@@ -185,6 +186,7 @@ module storage './core/storage/storage.bicep' = {
     tags: tags
     storageSku: storageSku 
     aseManagedIdentityName: deployAse ? managedIdentityAse.outputs.managedIdentityName : ''
+    myIpAddress: myIpAddress
     myPrincipalId: myPrincipalId
     vNetName: vnet.outputs.vnetName
     privateEndpointSubnetName: vnet.outputs.privateEndpointSubnetName
@@ -297,6 +299,7 @@ module keyvault './core/keyvault/keyvault.bicep' = {
     keyvaultPrivateEndpointName: '${abbrs.keyVaultVaults}${abbrs.privateEndpoints}${resourceToken}'
     keyvaultPrivateDnsZoneName: keyvaultPrivateDnsZoneName
     myPrincipalId: myPrincipalId
+    myIpAddress: myIpAddress
     logAnalyticsWorkspaceIdForDiagnostics : monitoring.outputs.logAnalyticsWorkspaceId
   }
 }
@@ -362,6 +365,7 @@ module serviceBus './core/servicebus/servicebus.bicep' = if(deployServiceBus){
     privateEndpointSubnetName : deployServiceBus ? vnet.outputs.privateEndpointSubnetName : ''
     vNetName : deployServiceBus ? vnet.outputs.vnetName : ''
     aseManagedIdentityName : deployAse ? managedIdentityAse.outputs.managedIdentityName : ''
+    keyVaultName: deployServiceBus ? keyvault.outputs.keyvaultName : ''
   }
 }
 
@@ -377,7 +381,6 @@ output ASE_NAME string = deployAse ? ase.outputs.aseName : ''
 output ASP_NAME string = asp.outputs.appServicePlanName
 output SERVICEBUS_NAME string = deployServiceBus ? serviceBus.outputs.serviceBusNamespaceName : ''
 output STORAGE_ACCOUNT_NAME string = storage.outputs.storageName
-output SERVICEBUS_NS_NAME string = deployServiceBus ? serviceBus.outputs.serviceBusNamespaceName : ''
 output KEYVAULT_NAME string = keyvault.outputs.keyvaultName
 output RESOURCE_GROUP_NAME string = rg.name
 output VNET_NAME string = vnet.outputs.vnetName

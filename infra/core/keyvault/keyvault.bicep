@@ -8,6 +8,7 @@ param vNetName string
 param apimManagedIdentityName string
 param aseManagedIdentityName string
 param myPrincipalId string
+param myIpAddress string = ''
 param logAnalyticsWorkspaceIdForDiagnostics string
 
 resource apimManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = {
@@ -34,6 +35,11 @@ resource keyvault 'Microsoft.KeyVault/vaults@2023-07-01' = {
     networkAcls:{
       bypass: 'AzureServices'
       defaultAction: 'Deny'
+      ipRules: [
+        {
+          value: myIpAddress
+        }
+      ]
     }
   }
 }
@@ -62,9 +68,9 @@ module currentUserRoleAssignment '../roleassignments/roleassignment.bicep' = {
   name: 'kv-currentuser-roleAssignment'
   params: {
     principalId: myPrincipalId
-    roleName: 'Key Vault Secrets Officer'
+    roleName: 'Key Vault Secrets User'
     targetResourceId: keyvault.id
-    deploymentName: 'kv-currentuser-roleAssignment-SecretOfficer'
+    deploymentName: 'kv-currentuser-roleAssignment-SecretsUser'
     principalType: 'User'
   }
 }

@@ -7,6 +7,7 @@ param privateEndpointSubnetName string
 param vNetName string
 param aseManagedIdentityName string
 param sku string
+param keyVaultName string
 
 resource aseManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = if (aseManagedIdentityName != ''){
   name: aseManagedIdentityName
@@ -57,6 +58,17 @@ module sbSenderRoleAssignment '../roleassignments/roleassignment.bicep' = if (as
     roleName: 'Service Bus Data Sender'
     targetResourceId: (aseManagedIdentityName != '') ? serviceBus.id : ''
     deploymentName: 'sb-ase-roleAssignment-DataSender'
+  }
+}
+
+var endpoint = '${serviceBus.id}/AuthorizationRules/RootManageSharedAccessKey'
+var serviceBusConnectionString = 'Endpoint=sb://${serviceBus.name}.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=${listKeys(endpoint, serviceBus.apiVersion).primaryKey}'
+module keyvaultSecretConnectionString '../keyvault/keyvault-secret.bicep' = {
+  name: '${serviceBus.name}-connectionstring-deployment-keyvault'
+  params: {
+    keyVaultName: keyVaultName
+    secretName: 'servicebus-connection-string'
+    secretValue: serviceBusConnectionString
   }
 }
 
