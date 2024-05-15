@@ -22,13 +22,14 @@ resource serviceBus 'Microsoft.ServiceBus/namespaces@2022-01-01-preview' = {
   }
 }
 
-resource serviceBusNetworkRuleIpAddress 'Microsoft.ServiceBus/namespaces/networkRules@2022-10-01-preview' = {
-  name: '${serviceBus.name}-allow-ipaddress'
+resource serviceBusNetworkRuleIpAddress 'Microsoft.ServiceBus/namespaces/networkRuleSets@2022-10-01-preview' = {
+  name: 'default'
   parent: serviceBus
   properties: {
     defaultAction: 'Deny'
     publicNetworkAccess: 'Enabled'
     virtualNetworkRules: []
+    trustedServiceAccessEnabled: false
     ipRules: [
       {
         ipMask: myIpAddress //for local development
