@@ -4,6 +4,7 @@ param tags object = {}
 param storageSku string 
 param aseManagedIdentityName string
 param myIpAddress string = ''
+param myPrincipalId string
 param blobPrivateDnsZoneName string
 param blobPrivateEndpointName string
 param tablePrivateDnsZoneName string

@@ -39,6 +39,15 @@ resource restApi 'Microsoft.ApiManagement/service/apis@2022-08-01' = {
   }
 }
 
+resource apiPolicies 'Microsoft.ApiManagement/service/apis/policies@2023-03-01-preview' = {
+  name: 'policy'
+  parent: restApi
+  properties: {
+    value: loadTextContent('../apim/policies/api-policy.xml')
+    format: 'rawxml'
+  }
+}
+
 resource diagnosticsPolicy 'Microsoft.ApiManagement/service/apis/diagnostics@2022-08-01' = if (!empty(apimLoggerName)) {
   name: 'applicationinsights'
   parent: restApi

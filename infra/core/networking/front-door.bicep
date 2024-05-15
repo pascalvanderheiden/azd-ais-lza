@@ -225,7 +225,7 @@ resource globalPolicies 'Microsoft.ApiManagement/service/policies@2023-03-01-pre
   name: 'policy'
   parent: apimService
   properties: {
-    value: loadTextContent('../apim/policies/global_policy.xml')
+    value: loadTextContent('../apim/policies/global-policy.xml')
     format: 'rawxml'
   }
   dependsOn: [
