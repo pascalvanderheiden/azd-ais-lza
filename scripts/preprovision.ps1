@@ -11,7 +11,7 @@ if ($? -eq $true) {
 
     # Define the path to the InteractiveMenu module
     $currentDir = Get-Location 
-    $modulePath = "\scripts\InteractiveMenu\InteractiveMenu.psd1"
+    $modulePath = "${currentDir}/scripts/InteractiveMenu/InteractiveMenu.psd1"
 
     # Check if the module exists
     if (Test-Path $modulePath) {

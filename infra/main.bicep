@@ -10,16 +10,16 @@ param environmentName string
 param location string
 
 @description('Deploy API Management Developer Portal')
-param deployApimDevPortal bool
+param deployApimDevPortal bool = false
 
 @description('Deploy Front Door')
-param deployFrontDoor bool
+param deployFrontDoor bool = false
 
 @description('Deploy an App Service Environment v3')
-param deployAse bool
+param deployAse bool = false
 
 @description('Deploy Service Bus Namespace')
-param deployServiceBus bool
+param deployServiceBus bool = false
 
 @description('Front Door SKU.')
 @allowed([
