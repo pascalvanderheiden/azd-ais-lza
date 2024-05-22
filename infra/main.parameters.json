@@ -13,6 +13,18 @@
       },
       "myPrincipalId": {
         "value": "${MY_USER_ID}"
+      },
+      "deployFrontDoor": {
+        "value": "${DEPLOY_FRONTDOOR}"
+      },
+      "deployAse": {
+        "value": "${DEPLOY_ASE}"
+      },
+      "deployServiceBus": {
+        "value": "${DEPLOY_SERVICEBUS}"
+      },
+      "deployApimDevPortal": {
+        "value": "${DEPLOY_APIM_DEV_PORTAL}"
       }
     }
 }

@@ -9,6 +9,6 @@ name: azd-ais-lza
 hooks:
   preprovision:
     shell: pwsh
-    run: ./scripts/set-env.ps1
+    run: ./scripts/preprovision.ps1
     continueOnError: false
     interactive: true

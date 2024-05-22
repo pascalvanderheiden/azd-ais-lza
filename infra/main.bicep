@@ -10,35 +10,15 @@ param environmentName string
 param location string
 
 @description('Deploy API Management Developer Portal')
-@metadata({
-  azd: {
-    type: 'boolean'
-  }
-})
 param deployApimDevPortal bool
 
 @description('Deploy Front Door')
-@metadata({
-  azd: {
-    type: 'boolean'
-  }
-})
 param deployFrontDoor bool
 
 @description('Deploy an App Service Environment v3')
-@metadata({
-  azd: {
-    type: 'boolean'
-  }
-})
 param deployAse bool
 
 @description('Deploy Service Bus Namespace')
-@metadata({
-  azd: {
-    type: 'boolean'
-  }
-})
 param deployServiceBus bool
 
 @description('Front Door SKU.')
@@ -386,8 +366,4 @@ output RESOURCE_GROUP_NAME string = rg.name
 output VNET_NAME string = vnet.outputs.vnetName
 output VNET_PE_SUBNET_NAME string = vnet.outputs.privateEndpointSubnetName
 output VNET_LA_SUBNET_NAME string = vnet.outputs.laSubnetName
-output DEPLOY_FRONTDOOR bool = deployFrontDoor
-output DEPLOY_ASE bool = deployAse
-output DEPLOY_SERVICEBUS bool = deployServiceBus
-output DEPLOY_APIM_DEV_PORTAL bool = deployApimDevPortal
 output APPINSIGHTS_NAME string = monitoring.outputs.applicationInsightsName
