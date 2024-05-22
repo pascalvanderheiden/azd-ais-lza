@@ -53,7 +53,7 @@ if ($? -eq $true) {
     $frontDoorQuestion = "Do you want to deploy Azure Front Door?"
     $deployFrontDoor = Get-InteractiveMenuChooseUserSelection -Question $frontDoorQuestion -Answers $answerItems -Options $options
     
-    azd env set DEPLOY_FRONTDOOR $deployAzureFrontDoor
+    azd env set DEPLOY_FRONTDOOR $deployFrontDoor
     
     ###################
     ## Deploy API Management Devoper Portal
