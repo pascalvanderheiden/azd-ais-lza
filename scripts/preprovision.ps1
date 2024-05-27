@@ -46,6 +46,14 @@ if ($? -eq $true) {
         -Info "No"
     )
 
+    // Not yet supported
+    $answerItemNo = @(
+    Get-InteractiveChooseMenuOption `
+        -Label "No" `
+        -Value "false" `
+        -Info "No"
+    )
+
     ###################
     ## Deploy Azure Front Door
     ###################
@@ -69,7 +77,7 @@ if ($? -eq $true) {
     ###################
 
     $aseQuestion = "Do you want to deploy an App Service Environment v3 to host you Logic Apps / Functions?"
-    $deployAse = Get-InteractiveMenuChooseUserSelection -Question $aseQuestion -Answers $answerItems -Options $options
+    $deployAse = Get-InteractiveMenuChooseUserSelection -Question $aseQuestion -Answers $answerItemNo -Options $options
 
     azd env set DEPLOY_ASE $deployAse
 
