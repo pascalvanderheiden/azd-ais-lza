@@ -9,6 +9,9 @@ if ($? -eq $true) {
     $myPrincipal = az ad signed-in-user show --query "id" -o tsv
     azd env set MY_USER_ID $myPrincipal
 
+    # Get the values from the environment
+    $azdenv = azd env get-values --output json | ConvertFrom-Json
+
     # Define the path to the InteractiveMenu module
     $currentDir = Get-Location 
     $modulePath = "${currentDir}/scripts/InteractiveMenu/InteractiveMenu.psd1"
@@ -46,7 +49,7 @@ if ($? -eq $true) {
         -Info "No"
     )
 
-    // Not yet supported
+    # Not yet supported
     $answerItemNo = @(
     Get-InteractiveChooseMenuOption `
         -Label "No" `
@@ -54,40 +57,43 @@ if ($? -eq $true) {
         -Info "No"
     )
 
+    # Read-Host -Prompt "Press any key to continue..."
+
     ###################
     ## Deploy Azure Front Door
     ###################
-
-    $frontDoorQuestion = "Do you want to deploy Azure Front Door?"
-    $deployFrontDoor = Get-InteractiveMenuChooseUserSelection -Question $frontDoorQuestion -Answers $answerItems -Options $options
-    
-    azd env set DEPLOY_FRONTDOOR $deployFrontDoor
-    
+    if ([String]::IsNullOrEmpty($azdenv.DEPLOY_FRONTDOOR) -or -not (Test-Path env:DEPLOY_FRONTDOOR)) {
+        $frontDoorQuestion = "Do you want to deploy Azure Front Door?"
+        $deployFrontDoor = Get-InteractiveMenuChooseUserSelection -Question $frontDoorQuestion -Answers $answerItems -Options $options
+        
+        azd env set DEPLOY_FRONTDOOR $deployFrontDoor
+    }
     ###################
     ## Deploy API Management Devoper Portal
     ###################
-    
-    $apimDeveloperPortalQuestion = "Do you want to enable the Developer Portal for Azure API Management?"
-    $deployApimDeveloperPortal = Get-InteractiveMenuChooseUserSelection -Question $apimDeveloperPortalQuestion -Answers $answerItems -Options $options
-    
-    azd env set DEPLOY_APIM_DEV_PORTAL $deployApimDeveloperPortal
-
+    if ([String]::IsNullOrEmpty($azdenv.DEPLOY_APIM_DEV_PORTAL) -or -not (Test-Path env:DEPLOY_APIM_DEV_PORTAL)) {
+        $apimDeveloperPortalQuestion = "Do you want to enable the Developer Portal for Azure API Management?"
+        $deployApimDeveloperPortal = Get-InteractiveMenuChooseUserSelection -Question $apimDeveloperPortalQuestion -Answers $answerItems -Options $options
+        
+        azd env set DEPLOY_APIM_DEV_PORTAL $deployApimDeveloperPortal
+    }
     ###################
     ## Deploy App Service Environment v3
     ###################
+    if ([String]::IsNullOrEmpty($azdenv.DEPLOY_ASE) -or -not (Test-Path env:DEPLOY_ASE)) {
+        $aseQuestion = "Do you want to deploy an App Service Environment v3 to host you Logic Apps / Functions?"
+        $deployAse = Get-InteractiveMenuChooseUserSelection -Question $aseQuestion -Answers $answerItemNo -Options $options
 
-    $aseQuestion = "Do you want to deploy an App Service Environment v3 to host you Logic Apps / Functions?"
-    $deployAse = Get-InteractiveMenuChooseUserSelection -Question $aseQuestion -Answers $answerItemNo -Options $options
-
-    azd env set DEPLOY_ASE $deployAse
-
+        azd env set DEPLOY_ASE $deployAse
+    }
     ###################
     ## Deploy Service Bus Namespace
     ###################
-
-    $serviceBusNamespaceQuestion = "Do you want to add a Service Bus Namespace to your Landing Zone?"
-    $deployServiceBusNamespace = Get-InteractiveMenuChooseUserSelection -Question $serviceBusNamespaceQuestion -Answers $answerItems -Options $options
-    
-    azd env set DEPLOY_SERVICEBUS $deployServiceBusNamespace
+    if ([String]::IsNullOrEmpty($azdenv.DEPLOY_SERVICEBUS) -or -not (Test-Path env:DEPLOY_SERVICEBUS)) {
+        $serviceBusNamespaceQuestion = "Do you want to add a Service Bus Namespace to your Landing Zone?"
+        $deployServiceBusNamespace = Get-InteractiveMenuChooseUserSelection -Question $serviceBusNamespaceQuestion -Answers $answerItems -Options $options
+        
+        azd env set DEPLOY_SERVICEBUS $deployServiceBusNamespace
+    }
 }
 Write-Host "Finished executing preprovision.ps1"
