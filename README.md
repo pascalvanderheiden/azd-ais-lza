@@ -10,7 +10,6 @@ languages:
 - xml
 products:
 - azure-api-management
-- azure-cache-redis
 - azure-dns
 - azure-log-analytics
 - azure-monitor
@@ -35,7 +34,7 @@ Available as template on:
 -->
 # Deploy Azure Integration Services Landing Zone Accelerator with Azure Developer CLI
 
-Deploy Azure Integration Services Landing Zone accelerator with Azure Developer CLI to create a secure and scalable environment for your integration services. The accelerator includes best practices for security, network isolation, monitoring, and more. This repository can be used as a template for deploying integration patterns on Azure. Depending on your preference, for example: I want to deploy Logic Apps in a ASEv3 because I need VNET isolation, you set deployAse in `azd up` to 'true'. The same applies to Azure Front Door, Service Bus and Redis Cache. 
+Deploy Azure Integration Services Landing Zone accelerator with Azure Developer CLI to create a secure and scalable environment for your integration services. The accelerator includes best practices for security, network isolation, monitoring, and more. This repository can be used as a template for deploying a landing zone for integration patterns on Azure. Depending on your preference, you can choose to deploy the following services: Azure Front Door, Azure Service Bus, Application Service Environment v3 (will be added in the future) and Azure API Management Developer Portal.
 
 ## Key features
 
@@ -86,31 +85,12 @@ azd auth login
 azd up
 ```
 
-It will prompt you to login, pick a subscription, and provide a location (like "eastus"). We've added extra conditional parameters to deploy: Azure Frontdoor, Application Service Environment v3, Azure Service Bus and Redis Cache. Then it will provision the resources in your account. These choices can vary per organization, that is why they are optional.
+It will prompt you to login, pick a subscription, and provide a location (like "eastus"). We've added extra conditional parameters to deploy: Azure Frontdoor, Application Service Environment v3, Azure Service Bus and APIM Developer Portal. Then it will provision the resources in your account. These choices can vary per organization, that is why they are optional.
 
 For more details on the deployed services, see [additional details](#additional-details) below.
 
-The conditional parameters set in the `azd up` command are stored in the .azure\<name>\config.json file:
-
-```json
-{
-  "infra": {
-    "parameters": {
-      "deployApimDevPortal": "<true or false>",
-      "deployAse": "<true or false>",
-      "deployFrontDoor": "<true or false>",
-      "deployServiceBus": "<true or false>",
-      "deployRedisCache": "<true or false>"
-    }
-  }
-}
-```
-
 > [!NOTE]  
 > Sometimes the DNS zones for the private endpoints aren't created correctly / in time. If you get an error when you deploy the resources, you can try to deploy the resources again.
-
-> [!NOTE]
-> Deployment of Azure Redis Cache can take up to 30 minutes.
 
 > [!NOTE]
 > Deployment of App Service Environment v3 can take up to 3 hours!
@@ -227,10 +207,6 @@ We're also using [Azure Monitor Private Link Scope](https://learn.microsoft.com/
 ### Private Endpoint
 
 [Azure Private Endpoint](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview) allows you to connect privately to a service powered by Azure Private Link. Private Endpoint uses a private IP address from your VNet, effectively bringing the service into your VNet.
-
-### Azure Redis Cache
-
-[Azure Redis Cache](https://azure.microsoft.com/en-us/services/cache/) allows you to use a secure open source Redis cache. Read this on how we [enable Azure Redis Cache to improve the performance of Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-cache-external).
 
 ### Azure Service Bus
 
