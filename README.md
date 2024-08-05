@@ -89,10 +89,7 @@ It will prompt you to login, pick a subscription, and provide a location (like "
 
 For more details on the deployed services, see [additional details](#additional-details) below.
 
-<video width="640" height="480" controls autoplay>
-  <source src="docs/videos/azd-ais-lza-deploy-new.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+[![Watch the video](https://raw.githubusercontent.com/pascalvanderheiden/azd-ais-lza/main/docs/images/azd_up.png)](https://raw.githubusercontent.com/pascalvanderheiden/azd-ais-lza/main/docs/videos/azd-ais-lza-deploy-new.mp4)
 
 > [!NOTE]  
 > Sometimes the DNS zones for the private endpoints aren't created correctly / in time. If you get an error when you deploy the resources, you can try to deploy the resources again.
@@ -155,10 +152,7 @@ The resource group and all the resources will be deleted and you'll not be promp
 
 A [tests.http](tests.http) file with relevant tests you can perform is included, to check if your deployment is successful. You need the 2 subcription keys for Marketing and Finance, created in API Management in order to test the API. You can find more information about how to create subscription keys [here](https://docs.microsoft.com/en-us/azure/api-management/api-management-howto-create-subscriptions#add-a-subscription-key-to-a-user).
 
-<video width="640" height="480" controls autoplay>
-  <source src="docs/videos/azd-ais-lza-test.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+[![Watch the video](https://raw.githubusercontent.com/pascalvanderheiden/azd-ais-lza/main/docs/images/test.png)](https://raw.githubusercontent.com/pascalvanderheiden/azd-ais-lza/main/docs/videos/azd-ais-lza-test.mp4)
 
 ### Build Status
 
