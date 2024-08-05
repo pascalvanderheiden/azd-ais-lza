@@ -36,6 +36,8 @@ Available as template on:
 
 Deploy Azure Integration Services Landing Zone accelerator with Azure Developer CLI to create a secure and scalable environment for your integration services. The accelerator includes best practices for security, network isolation, monitoring, and more. This repository can be used as a template for deploying a landing zone for integration patterns on Azure. Depending on your preference, you can choose to deploy the following services: Azure Front Door, Azure Service Bus, Application Service Environment v3 (will be added in the future) and Azure API Management Developer Portal.
 
+When you have your Azure Integration Landing Zone in place, you can start developing & deploying integration patterns. [Here](https://github.com/pascalvanderheiden/azd-ais-async) is example of an asynchronous pattern you can deploy to this Landing Zone, leveraging GitHub Copilot to help understand how this patterns works.
+
 ## Key features
 
 - **Infrastructure-as-code**: Bicep templates for provisioning and deploying the resources.
