@@ -87,7 +87,7 @@ param appServiceEnvironmentName string = ''
 param appServicePlanName string = ''
 param serviceBusName string = ''
 param storageAccountName string = ''
-param calcRestServiceName string = ''
+param petStoreRestServiceName string = ''
 
 // Tags that should be applied to all resources.
 var tags = { 'azd-env-name': environmentName }
@@ -252,14 +252,14 @@ module apim './core/apim/apim.bicep' = {
   }
 }
 
-module calcRestApiService './core/apim/openapi-link-api.bicep' = {
-  name: 'calc-rest-api-service'
+module petStoreRestApiService './core/apim/openapi-link-api.bicep' = {
+  name: 'petstore-rest-api-service'
   scope: rg
   params: {
-    name: !empty(calcRestServiceName) ? calcRestServiceName : 'calc-rest-${resourceToken}'
-    displayName: 'Calculator API'
-    path: 'calc'
-    openApiSpecUrl: 'http://calcapi.cloudapp.net/calcapi.json'
+    name: !empty(petStoreRestServiceName) ? petStoreRestServiceName : 'petstore-rest-${resourceToken}'
+    displayName: 'PetStore API'
+    path: 'petstore'
+    openApiSpecUrl: 'https://petstore.swagger.io/v2/swagger.json'
     apimName: apim.outputs.apimName
     apimLoggerName: apim.outputs.apimLoggerName
   }

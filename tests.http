@@ -6,9 +6,9 @@
 GET https://{{frontDoorGwEndpoint}}/status-0123456789abcdef
 
 ### Test Azure API Management endpoint, with Consumer subscription key (should give 403)
-GET https://{{apimName}}.azure-api.net/calc/add?a=51&b=49
+GET https://{{apimName}}.azure-api.net/petstore/pet/findByStatus?status=available
 api-key: {{subscriptionKeyConsumer}}
 
 ### Test Front Door endpoint, with Consumer subscription key (should succeed)
-GET https://{{frontDoorGwEndpoint}}/calc/add?a=51&b=49
+GET https://{{frontDoorGwEndpoint}}/petstore/pet/findByStatus?status=available
 api-key: {{subscriptionKeyConsumer}}
