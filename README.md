@@ -152,7 +152,7 @@ The resource group and all the resources will be deleted and you'll not be promp
 
 ### Testing
 
-A [tests.http](tests.http) file with relevant tests you can perform is included, to check if your deployment is successful. You need the 2 subcription keys for Marketing and Finance, created in API Management in order to test the API. You can find more information about how to create subscription keys [here](https://docs.microsoft.com/en-us/azure/api-management/api-management-howto-create-subscriptions#add-a-subscription-key-to-a-user).
+A [tests.http](tests.http) file with relevant tests you can perform is included, to check if your deployment is successful. You need the subscription key for Consumer, created in API Management in order to test the API. You can find more information about how to create subscription keys [here](https://docs.microsoft.com/en-us/azure/api-management/api-management-howto-create-subscriptions#add-a-subscription-key-to-a-user).
 
 https://github.com/user-attachments/assets/65b6d415-2d82-410b-97ca-8767510bf97a
 
