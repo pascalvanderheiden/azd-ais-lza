@@ -87,7 +87,7 @@ catch {
 # Check if API Center exists
 Write-Host "Verifying API Center exists..." -ForegroundColor Yellow
 try {
-    $apiCenter = az apicenter service show --resource-group $ResourceGroupName --service-name $ApiCenterName --output json 2>$null | ConvertFrom-Json
+    $apiCenter = az apic show --resource-group $ResourceGroupName --name $ApiCenterName --output json 2>$null | ConvertFrom-Json
     if (-not $apiCenter) {
         Write-Host "Error: API Center '$ApiCenterName' not found in resource group '$ResourceGroupName'" -ForegroundColor Red
         exit 1

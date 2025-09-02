@@ -159,7 +159,7 @@ if ($? -eq $true) {
     ## Deploy Azure API Center
     ###################
     if ([String]::IsNullOrEmpty($azdenv.DEPLOY_API_CENTER) -or -not (Test-Path env:DEPLOY_API_CENTER)) {
-        $apiCenterQuestion = "Do you want to deploy Azure API Center with managed portal and VS Code integration?"
+        $apiCenterQuestion = "Do you want to deploy Azure API Center?"
         $deployApiCenter = Get-InteractiveMenuChooseUserSelection -Question $apiCenterQuestion -Answers $answerItems -Options $options
         
         azd env set DEPLOY_API_CENTER $deployApiCenter
@@ -168,10 +168,17 @@ if ($? -eq $true) {
     ###################
     ## Create API Center Portal App Registration
     ###################
-    Write-Host "Setting up API Center portal app registration..." -ForegroundColor Yellow
-    ./scripts/api-center-appreg.ps1
-    if ($? -ne $true) {
-        Write-Host "Warning: Failed to create API Center portal app registration. The portal may not function correctly." -ForegroundColor Yellow
+    # Get the updated values from the environment after all questions
+    $azdenv = azd env get-values --output json | ConvertFrom-Json
+    
+    if ($azdenv.DEPLOY_API_CENTER -eq "true") {
+        Write-Host "Setting up API Center Portal app registration..." -ForegroundColor Yellow
+        ./scripts/api-center-appreg.ps1
+        if ($? -ne $true) {
+            Write-Host "Warning: Failed to create API Center Portal app registration. The portal may not function correctly." -ForegroundColor Yellow
+        }
+    } else {
+        Write-Host "Skipping API Center Portal app registration - API Center not selected for deployment" -ForegroundColor Cyan
     }
 }
 Write-Host "Finished executing preprovision.ps1"

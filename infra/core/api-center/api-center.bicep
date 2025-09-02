@@ -1,3 +1,4 @@
+
 param name string
 param location string = resourceGroup().location
 param tags object = {}
@@ -10,37 +11,14 @@ resource apiCenter 'Microsoft.ApiCenter/services@2024-03-01' = {
   name: name
   location: location
   tags: union(tags, { 'azd-service-name': name })
+  sku: {
+    name: 'Free'
+  }
   identity: {
     type: 'SystemAssigned'
   }
   properties: {}
 }
-
-// Create the default workspace (required) - COMMENTED OUT FOR TESTING
-/*
-resource apiCenterWorkspace 'Microsoft.ApiCenter/services/workspaces@2024-03-01' = {
-  parent: apiCenter
-  name: 'default'
-  properties: {
-    title: 'Default workspace'
-    description: 'Default workspace for API Center'
-  }
-}
-
-// Create environment for APIM integration
-resource apimEnvironment 'Microsoft.ApiCenter/services/workspaces/environments@2024-03-01' = {
-  parent: apiCenterWorkspace
-  name: 'apim-environment'
-  properties: {
-    title: 'API Management Environment'
-    description: 'Environment for Azure API Management integration'
-    kind: 'production'
-    server: {
-      type: 'Azure API Management'
-    }
-  }
-}
-*/
 
 // Reference the existing APIM managed identity
 resource apimManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
@@ -52,6 +30,7 @@ resource apimService 'Microsoft.ApiManagement/service@2024-05-01' existing = {
   name: apimName
 }
 
+// TODO: rewrite role assignment to use the seperate bicep module
 // Assign API Center Data Reader role to APIM's managed identity for sync
 resource apimApiCenterDataReaderRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: apiCenter

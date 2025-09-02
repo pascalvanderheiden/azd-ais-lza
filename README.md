@@ -110,6 +110,34 @@ azd env set MY_IP_ADDRESS '<your-ip-address>'
 > [!NOTE]  
 > To determine your IPv4 address, the service icanhazip.com is being used. To control the IPv4 addresss used directly (without the service), edit the MY_IP_ADDRESS field in the .azure\<name>\.env file. This file is created after azd init. Without a properly configured IP address, azd up will fail.
 
+## API Center Portal Setup
+
+After deployment with API Center enabled, complete these manual steps to configure the portal:
+
+### Manual Configuration Required
+
+The deployment creates the necessary app registration, but you need to configure the portal settings manually:
+
+1. **Navigate to your API Center** in the Azure portal
+2. **Select 'API Center portal' > 'Settings'** from the left menu
+3. **On the 'Identity provider' tab**, select 'Start set up'
+4. **On the 'Manual' tab**, enter:
+   - **Client ID**: (provided in deployment output)
+   - **Redirect URI**: `https://<your-api-center-name>.portal.<region>.azure-apicenter.ms`
+5. **Select 'Save + publish'**
+
+Your portal will be available at: `https://<your-api-center-name>.portal.<region>.azure-apicenter.ms`
+
+### Monitor API Integration
+
+You can monitor the API Management integration in the Azure portal:
+
+1. **Navigate to your API Center** in the Azure portal
+2. **Go to 'Assets' > 'Environments'** to see the integrated API Management environment  
+3. **Go to 'Assets' > 'APIs'** to see synchronized APIs
+
+> **Note**: APIs from API Management will automatically sync to API Center within minutes.
+
 ## Additional features
 
 ### CI/CD pipeline

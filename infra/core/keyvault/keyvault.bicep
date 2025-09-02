@@ -68,9 +68,9 @@ module currentUserRoleAssignment '../roleassignments/roleassignment.bicep' = {
   name: 'kv-currentuser-roleAssignment'
   params: {
     principalId: myPrincipalId
-    roleName: 'Key Vault Secrets User'
+    roleName: 'Key Vault Secrets Officer'
     targetResourceId: keyvault.id
-    deploymentName: 'kv-currentuser-roleAssignment-SecretsUser'
+    deploymentName: 'kv-currentuser-roleAssignment-SecretsOfficer'
     principalType: 'User'
   }
 }

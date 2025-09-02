@@ -12,7 +12,7 @@ hooks:
     run: ./scripts/preprovision.ps1
     continueOnError: false
     interactive: true
-  postprovision:
+  postdeploy:
     shell: pwsh
     run: ./scripts/postdeploy.ps1
     continueOnError: true
