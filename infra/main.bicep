@@ -18,6 +18,9 @@ param deployFrontDoor bool = false
 @description('Deploy an App Service Environment v3')
 param deployAse bool = false
 
+@description('Deploy Azure Functions')
+param deployFunctions bool = false
+
 @description('Deploy Service Bus Namespace')
 param deployServiceBus bool = false
 
@@ -63,6 +66,7 @@ param wafManagedRuleSets array = [
 //Leave blank to use default naming conventions
 param apimIdentityName string = ''
 param aseIdentityName string = ''
+param functionsIdentityName string = ''
 param apimServiceName string = ''
 param logAnalyticsName string = ''
 param applicationInsightsDashboardName string = ''
@@ -74,6 +78,8 @@ param aseSubnetName string = ''
 param aseNsgName string = ''
 param laSubnetName string = ''
 param laNsgName string = ''
+param functionsSubnetName string = ''
+param functionsNsgName string = ''
 param privateEndpointSubnetName string = ''
 param privateEndpointNsgName string = ''
 param myIpAddress string = ''
@@ -85,9 +91,10 @@ param frontDoorProxyEndpointName string = ''
 param frontDoorDeveloperPortalEndpointName string = ''
 param appServiceEnvironmentName string = ''
 param appServicePlanName string = ''
+param functionsAppServicePlanName string = ''
 param serviceBusName string = ''
 param storageAccountName string = ''
-param petStoreRestServiceName string = ''
+param petstoreServiceName string = ''
 
 // Tags that should be applied to all resources.
 var tags = { 'azd-env-name': environmentName }
@@ -147,6 +154,16 @@ module managedIdentityAse './core/security/managed-identity.bicep' = if(deployAs
   }
 }
 
+module managedIdentityFunctions './core/security/managed-identity.bicep' = if(deployFunctions){
+  name: 'managed-identity-functions'
+  scope: rg
+  params: {
+    name: !empty(functionsIdentityName) ? functionsIdentityName : '${abbrs.managedIdentityUserAssignedIdentities}${resourceToken}-functions'
+    location: location
+    tags: tags
+  }
+}
+
 module managedIdentityFrontDoor './core/security/managed-identity.bicep' = if(deployFrontDoor){
   name: 'managed-identity-front-door'
   scope: rg
@@ -165,7 +182,7 @@ module storage './core/storage/storage.bicep' = {
     location: location
     tags: tags
     storageSku: storageSku 
-    aseManagedIdentityName: deployAse ? managedIdentityAse.outputs.managedIdentityName : ''
+    aseManagedIdentityName: deployAse ? (!empty(aseIdentityName) ? aseIdentityName : '${abbrs.managedIdentityUserAssignedIdentities}${resourceToken}-ase') : ''
     myIpAddress: myIpAddress
     myPrincipalId: myPrincipalId
     vNetName: vnet.outputs.vnetName
@@ -193,6 +210,8 @@ module vnet './core/networking/vnet.bicep' = {
     aseNsgName: !empty(aseNsgName) ? aseNsgName : '${abbrs.networkNetworkSecurityGroups}${abbrs.webSitesAppServiceEnvironment}${resourceToken}'
     laSubnetName: !empty(laSubnetName) ? laSubnetName : '${abbrs.networkVirtualNetworksSubnets}la-${resourceToken}'
     laNsgName: !empty(laNsgName) ? laNsgName : '${abbrs.networkNetworkSecurityGroups}la-${resourceToken}'
+    functionsSubnetName: !empty(functionsSubnetName) ? functionsSubnetName : '${abbrs.networkVirtualNetworksSubnets}${abbrs.webSitesFunctions}${resourceToken}'
+    functionsNsgName: !empty(functionsNsgName) ? functionsNsgName : '${abbrs.networkNetworkSecurityGroups}${abbrs.webSitesFunctions}${resourceToken}'
     privateEndpointSubnetName: !empty(privateEndpointSubnetName) ? privateEndpointSubnetName : '${abbrs.networkVirtualNetworksSubnets}${abbrs.privateEndpoints}${resourceToken}'
     privateEndpointNsgName: !empty(privateEndpointNsgName) ? privateEndpointNsgName : '${abbrs.networkNetworkSecurityGroups}${abbrs.privateEndpoints}${resourceToken}'
     location: location
@@ -200,6 +219,7 @@ module vnet './core/networking/vnet.bicep' = {
     privateDnsZoneNames: privateDnsZoneNames
     apimSku: apimSku
     deployAse: deployAse
+    deployFunctions: deployFunctions
   }
   dependsOn: [
     dnsDeployment
@@ -252,14 +272,14 @@ module apim './core/apim/apim.bicep' = {
   }
 }
 
-module petStoreRestApiService './core/apim/openapi-link-api.bicep' = {
-  name: 'petstore-rest-api-service'
+module petstoreApiService './core/apim/openapi-link-api.bicep' = {
+  name: 'petstore-api-service'
   scope: rg
   params: {
-    name: !empty(petStoreRestServiceName) ? petStoreRestServiceName : 'petstore-rest-${resourceToken}'
-    displayName: 'PetStore API'
+    name: !empty(petstoreServiceName) ? petstoreServiceName : 'petstore-${resourceToken}'
+    displayName: 'Petstore API'
     path: 'petstore'
-    openApiSpecUrl: 'https://petstore.swagger.io/v2/swagger.json'
+    openApiSpecUrl: 'https://petstore3.swagger.io/api/v3/openapi.json'
     apimName: apim.outputs.apimName
     apimLoggerName: apim.outputs.apimLoggerName
   }
@@ -273,7 +293,7 @@ module keyvault './core/keyvault/keyvault.bicep' = {
     location: location
     tags: tags
     apimManagedIdentityName: managedIdentityApim.outputs.managedIdentityName
-    aseManagedIdentityName: deployAse ? managedIdentityAse.outputs.managedIdentityName : ''
+    aseManagedIdentityName: deployAse ? (!empty(aseIdentityName) ? aseIdentityName : '${abbrs.managedIdentityUserAssignedIdentities}${resourceToken}-ase') : ''
     vNetName: vnet.outputs.vnetName
     privateEndpointSubnetName: vnet.outputs.privateEndpointSubnetName
     keyvaultPrivateEndpointName: '${abbrs.keyVaultVaults}${abbrs.privateEndpoints}${resourceToken}'
@@ -301,7 +321,7 @@ module frontDoor './core/networking/front-door.bicep' = if(deployFrontDoor){
     wafManagedRuleSets: wafManagedRuleSets
     apimFrontDoorIdNamedValueName: apimFrontDoorIdNamedValueName
     logAnalyticsWorkspaceIdForDiagnostics : deployFrontDoor ? monitoring.outputs.logAnalyticsWorkspaceId : ''
-    fdManagedIdentityName: deployFrontDoor ? managedIdentityFrontDoor.outputs.managedIdentityName : ''
+    fdManagedIdentityName: deployFrontDoor ? (!empty(aseIdentityName) ? aseIdentityName : '${abbrs.managedIdentityUserAssignedIdentities}${resourceToken}-fd') : ''
   }
 }
 
@@ -314,8 +334,21 @@ module ase './core/host/ase.bicep' = if(deployAse){
     tags: tags
     virtualNetworkId: deployAse ? vnet.outputs.aseSubnetId : ''
     subnetName: deployAse ? vnet.outputs.aseSubnetName : ''
-    aseManagedIdentityName: deployAse ? managedIdentityAse.outputs.managedIdentityName : ''
   }
+}
+
+module aseNetworking './core/host/ase-networking.bicep' = if(deployAse){
+  name: 'ase-networking'
+  scope: rg
+  params: {
+    aseName: deployAse ? (!empty(appServiceEnvironmentName) ? appServiceEnvironmentName : '${abbrs.webSitesAppServiceEnvironment}${resourceToken}') : ''
+    allowNewPrivateEndpointConnections: false
+    ftpEnabled: false
+    remoteDebugEnabled: false
+  }
+  dependsOn: [
+    ase
+  ]
 }
 
 module asp './core/host/asp.bicep' = {
@@ -323,11 +356,25 @@ module asp './core/host/asp.bicep' = {
   scope: rg
   params: {
     name: !empty(appServicePlanName) ? appServicePlanName : '${abbrs.webServerFarms}${resourceToken}'
-    aseName: deployAse ? ase.outputs.aseName : ''
+    aseName: deployAse ? (!empty(appServiceEnvironmentName) ? appServiceEnvironmentName : '${abbrs.webSitesAppServiceEnvironment}${resourceToken}') : ''
     tags: tags
     location: location
     deployAse: deployAse
     skuName: deployAse ? 'I1v2' : 'WS1'
+    skuCount: 1
+  }
+}
+
+module functionsAsp './core/host/functions-asp.bicep' = if(deployFunctions) {
+  name: 'functions-asp'
+  scope: rg
+  params: {
+    name: !empty(functionsAppServicePlanName) ? functionsAppServicePlanName : '${abbrs.webServerFarms}${resourceToken}-functions'
+    aseName: deployAse ? (!empty(appServiceEnvironmentName) ? appServiceEnvironmentName : '${abbrs.webSitesAppServiceEnvironment}${resourceToken}') : ''
+    tags: tags
+    location: location
+    deployAse: deployAse
+    skuName: deployAse ? 'I1v2' : 'EP1'
     skuCount: 1
   }
 }
@@ -354,16 +401,18 @@ output AZURE_TENANT_ID string = subscription().tenantId
 output AZURE_LOCATION string = location
 output AZURE_SUBSCRIPTION_ID string = subscription().subscriptionId
 output APIM_NAME string = apim.outputs.apimName
-output FRONTDOOR_NAME string = deployFrontDoor ? frontDoor.outputs.frontDoorName : ''
-output FRONTDOOR_GATEWAY_ENDPOINT_NAME string = deployFrontDoor ? frontDoor.outputs.frontDoorProxyEndpointHostName : ''
-output FRONTDOOR_PORTAL_ENDPOINT_NAME string = deployFrontDoor ? frontDoor.outputs.frontDoorDeveloperPortalEndpointHostName : ''
-output ASE_NAME string = deployAse ? ase.outputs.aseName : ''
+output FRONTDOOR_NAME string = deployFrontDoor ? (!empty(frontDoorName) ? frontDoorName : '${abbrs.networkFrontDoors}${resourceToken}') : ''
+output FRONTDOOR_GATEWAY_ENDPOINT_NAME string = deployFrontDoor ? 'afd-proxy-${abbrs.networkFrontDoors}${resourceToken}' : ''
+output FRONTDOOR_PORTAL_ENDPOINT_NAME string = deployFrontDoor ? 'afd-portal-${abbrs.networkFrontDoors}${resourceToken}' : ''
+output ASE_NAME string = deployAse ? (!empty(appServiceEnvironmentName) ? appServiceEnvironmentName : '${abbrs.webSitesAppServiceEnvironment}${resourceToken}') : ''
 output ASP_NAME string = asp.outputs.appServicePlanName
-output SERVICEBUS_NAME string = deployServiceBus ? serviceBus.outputs.serviceBusNamespaceName : ''
+output FUNCTIONS_ASP_NAME string = deployFunctions ? (!empty(functionsAppServicePlanName) ? functionsAppServicePlanName : '${abbrs.webServerFarms}${resourceToken}-functions') : ''
+output SERVICEBUS_NAME string = deployServiceBus ? (!empty(serviceBusName) ? serviceBusName : '${abbrs.serviceBusNamespaces}${resourceToken}') : ''
 output STORAGE_ACCOUNT_NAME string = storage.outputs.storageName
 output KEYVAULT_NAME string = keyvault.outputs.keyvaultName
 output RESOURCE_GROUP_NAME string = rg.name
 output VNET_NAME string = vnet.outputs.vnetName
 output VNET_PE_SUBNET_NAME string = vnet.outputs.privateEndpointSubnetName
 output VNET_LA_SUBNET_NAME string = vnet.outputs.laSubnetName
+output VNET_FUNCTIONS_SUBNET_NAME string = vnet.outputs.functionsSubnetName
 output APPINSIGHTS_NAME string = monitoring.outputs.applicationInsightsName

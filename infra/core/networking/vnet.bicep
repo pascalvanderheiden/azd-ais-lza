@@ -6,6 +6,8 @@ param aseSubnetName string
 param aseNsgName string
 param laSubnetName string
 param laNsgName string
+param functionsSubnetName string
+param functionsNsgName string
 
 param privateEndpointSubnetName string
 param privateEndpointNsgName string
@@ -13,6 +15,7 @@ param privateDnsZoneNames array
 param tags object = {}
 param apimSku string
 param deployAse bool
+param deployFunctions bool
 
 var webServerFarmDelegation = [
   {
@@ -162,8 +165,8 @@ resource laNsg 'Microsoft.Network/networkSecurityGroups@2022-09-01' = if(!deploy
   }
 }
 
-resource aseNsg 'Microsoft.Network/networkSecurityGroups@2022-09-01' = if(deployAse){
-  name: aseNsgName
+resource functionsNsg 'Microsoft.Network/networkSecurityGroups@2022-09-01' = if(deployFunctions && !deployAse){
+  name: functionsNsgName
   location: location
   properties: {
     securityRules: [
@@ -192,6 +195,106 @@ resource aseNsg 'Microsoft.Network/networkSecurityGroups@2022-09-01' = if(deploy
               priority: 120
               direction: 'Inbound'
           }
+      }
+    ]
+  }
+}
+
+resource aseNsg 'Microsoft.Network/networkSecurityGroups@2022-09-01' = if(deployAse){
+  name: aseNsgName
+  location: location
+  properties: {
+    securityRules: [
+      {
+        name: 'AllowManagementInbound'
+        properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '454-455'
+            sourceAddressPrefix: 'AppServiceManagement'
+            destinationAddressPrefix: '*'
+            access: 'Allow'
+            priority: 100
+            direction: 'Inbound'
+        }
+      }
+      {
+        name: 'AllowHTTPSInbound'
+        properties: {
+            protocol: 'TCP'
+            sourcePortRange: '*'
+            destinationPortRange: '443'
+            sourceAddressPrefix: '*'
+            destinationAddressPrefix: '*'
+            access: 'Allow'
+            priority: 110
+            direction: 'Inbound'
+        }
+      }
+      {
+        name: 'AllowHTTPInbound'
+        properties: {
+            protocol: 'TCP'
+            sourcePortRange: '*'
+            destinationPortRange: '80'
+            sourceAddressPrefix: '*'
+            destinationAddressPrefix: '*'
+            access: 'Allow'
+            priority: 120
+            direction: 'Inbound'
+        }
+      }
+      {
+        name: 'AllowLoadBalancerInbound'
+        properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: 'AzureLoadBalancer'
+            destinationAddressPrefix: '*'
+            access: 'Allow'
+            priority: 130
+            direction: 'Inbound'
+        }
+      }
+      {
+        name: 'AllowInternetOutbound'
+        properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: '*'
+            destinationAddressPrefix: 'Internet'
+            access: 'Allow'
+            priority: 100
+            direction: 'Outbound'
+        }
+      }
+      {
+        name: 'AllowSQLOutbound'
+        properties: {
+            protocol: 'TCP'
+            sourcePortRange: '*'
+            destinationPortRange: '1433'
+            sourceAddressPrefix: '*'
+            destinationAddressPrefix: 'SQL'
+            access: 'Allow'
+            priority: 110
+            direction: 'Outbound'
+        }
+      }
+      {
+        name: 'AllowDNSOutbound'
+        properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '53'
+            sourceAddressPrefix: '*'
+            destinationAddressPrefix: '*'
+            access: 'Allow'
+            priority: 120
+            direction: 'Outbound'
+        }
       }
     ]
   }
@@ -279,15 +382,34 @@ resource aseSubnet 'Microsoft.Network/virtualNetworks/subnets@2023-04-01' = if(d
   name: aseSubnetName
   parent: virtualNetwork
   properties: {
-    addressPrefix: '10.0.4.0/24'
-    networkSecurityGroup: !deployAse ? null : {
+    addressPrefix: '10.0.4.0/22'
+    networkSecurityGroup: deployAse ? {
       id: aseNsg.id
-    }
+    } : null
     delegations: [
       {
           name: 'Microsoft.Web.hostingEnvironments'
           properties: {
               serviceName: 'Microsoft.Web/hostingEnvironments'
+          }
+      }
+    ]
+  }
+}
+
+resource functionsSubnet 'Microsoft.Network/virtualNetworks/subnets@2023-04-01' = if(deployFunctions && !deployAse) {
+  name: functionsSubnetName
+  parent: virtualNetwork
+  properties: {
+    addressPrefix: '10.0.5.0/24'
+    networkSecurityGroup: (deployFunctions && !deployAse) ? {
+      id: functionsNsg.id
+    } : null
+    delegations: [
+      {
+          name: 'Microsoft.Web.serverFarms'
+          properties: {
+              serviceName: 'Microsoft.Web/serverFarms'
           }
       }
     ]
@@ -313,5 +435,7 @@ output aseSubnetName string = deployAse ? aseSubnet.name : ''
 output aseSubnetId string = deployAse ? aseSubnet.id : ''
 output laSubnetName string = !deployAse ? laSubnet.name : ''
 output laSubnetId string = !deployAse ? laSubnet.id : ''
+output functionsSubnetName string = (deployFunctions && !deployAse) ? functionsSubnet.name : ''
+output functionsSubnetId string = (deployFunctions && !deployAse) ? functionsSubnet.id : ''
 output privateEndpointSubnetName string = virtualNetwork::privateEndpointSubnet.name
 output privateEndpointSubnetId string = virtualNetwork::privateEndpointSubnet.id

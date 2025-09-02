@@ -82,9 +82,18 @@ if ($? -eq $true) {
     ###################
     if ([String]::IsNullOrEmpty($azdenv.DEPLOY_ASE) -or -not (Test-Path env:DEPLOY_ASE)) {
         $aseQuestion = "Do you want to deploy an App Service Environment v3 to host you Logic Apps / Functions?"
-        $deployAse = Get-InteractiveMenuChooseUserSelection -Question $aseQuestion -Answers $answerItemNo -Options $options
+        $deployAse = Get-InteractiveMenuChooseUserSelection -Question $aseQuestion -Answers $answerItems -Options $options
 
         azd env set DEPLOY_ASE $deployAse
+    }
+    ###################
+    ## Deploy Azure Functions
+    ###################
+    if ([String]::IsNullOrEmpty($azdenv.DEPLOY_FUNCTIONS) -or -not (Test-Path env:DEPLOY_FUNCTIONS)) {
+        $azureFunctionsQuestion = "Do you want to add Azure Functions support to your Landing Zone?"
+        $deployAzureFunctions = Get-InteractiveMenuChooseUserSelection -Question $azureFunctionsQuestion -Answers $answerItems -Options $options
+        
+        azd env set DEPLOY_FUNCTIONS $deployAzureFunctions
     }
     ###################
     ## Deploy Service Bus Namespace
