@@ -18,8 +18,14 @@ param deployFrontDoor bool = false
 @description('Deploy an App Service Environment v3')
 param deployAse bool = false
 
+@description('Deploy Logic Apps')
+param deployLogicApps bool = false
+
 @description('Deploy Azure Functions')
 param deployFunctions bool = false
+
+@description('Deploy Azure API Center')
+param deployApiCenter bool = false
 
 @description('Deploy Service Bus Namespace')
 param deployServiceBus bool = false
@@ -59,9 +65,12 @@ param wafManagedRuleSets array = [
   }
   {
     ruleSetType: 'Microsoft_BotManagerRuleSet'
-    ruleSetVersion: '1.0'
+    ruleSetVersion: '1.1'
   }
 ]
+
+@description('Rate limit threshold value for WAF DDoS protection. Default is 100 requests per 5 minutes.')
+param wafRateLimitThreshold int = 100
 
 //Leave blank to use default naming conventions
 param apimIdentityName string = ''
@@ -95,6 +104,8 @@ param functionsAppServicePlanName string = ''
 param serviceBusName string = ''
 param storageAccountName string = ''
 param petstoreServiceName string = ''
+param apiCenterName string = ''
+param apiCenterPortalClientId string = ''
 
 // Tags that should be applied to all resources.
 var tags = { 'azd-env-name': environmentName }
@@ -219,6 +230,7 @@ module vnet './core/networking/vnet.bicep' = {
     privateDnsZoneNames: privateDnsZoneNames
     apimSku: apimSku
     deployAse: deployAse
+    deployLogicApps: deployLogicApps
     deployFunctions: deployFunctions
   }
   dependsOn: [
@@ -319,6 +331,7 @@ module frontDoor './core/networking/front-door.bicep' = if(deployFrontDoor){
     apimName: deployFrontDoor ? apim.outputs.apimName : ''
     wafMode: wafMode
     wafManagedRuleSets: wafManagedRuleSets
+    rateLimitThreshold: wafRateLimitThreshold
     apimFrontDoorIdNamedValueName: apimFrontDoorIdNamedValueName
     logAnalyticsWorkspaceIdForDiagnostics : deployFrontDoor ? monitoring.outputs.logAnalyticsWorkspaceId : ''
     fdManagedIdentityName: deployFrontDoor ? (!empty(aseIdentityName) ? aseIdentityName : '${abbrs.managedIdentityUserAssignedIdentities}${resourceToken}-fd') : ''
@@ -334,25 +347,14 @@ module ase './core/host/ase.bicep' = if(deployAse){
     tags: tags
     virtualNetworkId: deployAse ? vnet.outputs.aseSubnetId : ''
     subnetName: deployAse ? vnet.outputs.aseSubnetName : ''
-  }
-}
-
-module aseNetworking './core/host/ase-networking.bicep' = if(deployAse){
-  name: 'ase-networking'
-  scope: rg
-  params: {
-    aseName: deployAse ? (!empty(appServiceEnvironmentName) ? appServiceEnvironmentName : '${abbrs.webSitesAppServiceEnvironment}${resourceToken}') : ''
     allowNewPrivateEndpointConnections: false
     ftpEnabled: false
     remoteDebugEnabled: false
   }
-  dependsOn: [
-    ase
-  ]
 }
 
-module asp './core/host/asp.bicep' = {
-  name: 'asp'
+module logicAsp './core/host/logic-asp.bicep' = if(deployLogicApps) {
+  name: 'logic-asp'
   scope: rg
   params: {
     name: !empty(appServicePlanName) ? appServicePlanName : '${abbrs.webServerFarms}${resourceToken}'
@@ -396,18 +398,36 @@ module serviceBus './core/servicebus/servicebus.bicep' = if(deployServiceBus){
   }
 }
 
+module apiCenter './core/api-center/api-center.bicep' = if(deployApiCenter){
+  name: 'apicenter'
+  scope: rg
+  params: {
+    name: !empty(apiCenterName) ? apiCenterName : 'apic-${resourceToken}'
+    location: location
+    tags: tags
+    apimName: apim.outputs.apimName
+    apimManagedIdentityName: managedIdentityApim.outputs.managedIdentityName
+    portalClientId: apiCenterPortalClientId
+  }
+}
+
 output RESOURCE_TOKEN string = resourceToken
 output AZURE_TENANT_ID string = subscription().tenantId
 output AZURE_LOCATION string = location
 output AZURE_SUBSCRIPTION_ID string = subscription().subscriptionId
 output APIM_NAME string = apim.outputs.apimName
 output FRONTDOOR_NAME string = deployFrontDoor ? (!empty(frontDoorName) ? frontDoorName : '${abbrs.networkFrontDoors}${resourceToken}') : ''
+output FRONTDOOR_WAF_ID string = deployFrontDoor ? frontDoor!.outputs.frontDoorWafId : ''
 output FRONTDOOR_GATEWAY_ENDPOINT_NAME string = deployFrontDoor ? 'afd-proxy-${abbrs.networkFrontDoors}${resourceToken}' : ''
 output FRONTDOOR_PORTAL_ENDPOINT_NAME string = deployFrontDoor ? 'afd-portal-${abbrs.networkFrontDoors}${resourceToken}' : ''
 output ASE_NAME string = deployAse ? (!empty(appServiceEnvironmentName) ? appServiceEnvironmentName : '${abbrs.webSitesAppServiceEnvironment}${resourceToken}') : ''
-output ASP_NAME string = asp.outputs.appServicePlanName
-output FUNCTIONS_ASP_NAME string = deployFunctions ? (!empty(functionsAppServicePlanName) ? functionsAppServicePlanName : '${abbrs.webServerFarms}${resourceToken}-functions') : ''
+output ASP_NAME string = deployLogicApps ? logicAsp!.outputs.appServicePlanName : ''
+output FUNCTIONS_ASP_NAME string = deployFunctions ? functionsAsp!.outputs.functionsAppServicePlanName : ''
 output SERVICEBUS_NAME string = deployServiceBus ? (!empty(serviceBusName) ? serviceBusName : '${abbrs.serviceBusNamespaces}${resourceToken}') : ''
+output API_CENTER_NAME string = deployApiCenter ? (!empty(apiCenterName) ? apiCenterName : 'apic-${resourceToken}') : ''
+output API_CENTER_PORTAL_URL string = deployApiCenter ? apiCenter!.outputs.apiCenterPortalUrl : ''
+output API_CENTER_PORTAL_CLIENT_ID string = deployApiCenter ? apiCenterPortalClientId : ''
+output API_CENTER_PORTAL_SETUP_INSTRUCTIONS string = deployApiCenter ? apiCenter!.outputs.portalSetupInstructions : ''
 output STORAGE_ACCOUNT_NAME string = storage.outputs.storageName
 output KEYVAULT_NAME string = keyvault.outputs.keyvaultName
 output RESOURCE_GROUP_NAME string = rg.name

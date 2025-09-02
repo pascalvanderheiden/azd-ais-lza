@@ -34,7 +34,7 @@ Available as template on:
 -->
 # Deploy Azure Integration Services Landing Zone Accelerator with Azure Developer CLI
 
-Deploy Azure Integration Services Landing Zone accelerator with Azure Developer CLI to create a secure and scalable environment for your integration services. The accelerator includes best practices for security, network isolation, monitoring, and more. This repository can be used as a template for deploying a landing zone for integration patterns on Azure. Depending on your preference, you can choose to deploy the following services: Azure Front Door, Azure Service Bus, Application Service Environment v3 (will be added in the future) and Azure API Management Developer Portal.
+Deploy Azure Integration Services Landing Zone accelerator with Azure Developer CLI to create a secure and scalable environment for your integration services. The accelerator includes best practices for security, network isolation, monitoring, and more. This repository can be used as a template for deploying a landing zone for integration patterns on Azure. Depending on your preference, you can choose to deploy the following services: Azure Front Door, Azure Service Bus, Azure Functions, Application Service Environment v3, Azure API Center with managed portal, and Azure API Management Developer Portal.
 
 When you have your Azure Integration Landing Zone in place, you can start developing & deploying integration patterns. [Here](https://github.com/pascalvanderheiden/azd-ais-async) is example of an asynchronous pattern you can deploy to this Landing Zone, leveraging GitHub Copilot to help understand how this pattern works.
 
@@ -87,7 +87,7 @@ azd auth login
 azd up
 ```
 
-It will prompt you to login, pick a subscription, and provide a location (like "eastus"). We've added extra conditional parameters to deploy: Azure Frontdoor, Application Service Environment v3, Azure Service Bus and APIM Developer Portal. Then it will provision the resources in your account. These choices can vary per organization, that is why they are optional.
+It will prompt you to login, pick a subscription, and provide a location (like "eastus"). We've added extra conditional parameters to deploy: Azure Front Door, Application Service Environment v3, Azure Functions, Azure Service Bus, Azure API Center with managed portal, and APIM Developer Portal. Then it will provision the resources in your account. These choices can vary per organization, that is why they are optional.
 
 For more details on the deployed services, see [additional details](#additional-details) below.
 
@@ -217,6 +217,14 @@ We're also using [Azure Monitor Private Link Scope](https://learn.microsoft.com/
 ### Azure Service Bus
 
 [Azure Service Bus](https://azure.microsoft.com/en-us/services/service-bus/) allows you to use a secure messaging service.
+
+### Azure Functions
+
+[Azure Functions](https://azure.microsoft.com/en-us/products/functions/) is a serverless compute service that enables you to run code on-demand without having to explicitly provision or manage infrastructure. Perfect for building scalable integration solutions and event-driven applications.
+
+### Azure API Center
+
+[Azure API Center](https://azure.microsoft.com/en-us/products/api-center/) provides a unified catalog for all your APIs across the organization. It includes a managed portal for API discovery, automatic integration with Azure API Management, and VS Code extension support for developers.
 
 ### Azure Front Door
 

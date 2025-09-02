@@ -20,11 +20,26 @@
       "deployAse": {
         "value": "${DEPLOY_ASE}"
       },
+      "deployLogicApps": {
+        "value": "${DEPLOY_LOGIC_APPS}"
+      },
+      "deployFunctions": {
+        "value": "${DEPLOY_FUNCTIONS}"
+      },
       "deployServiceBus": {
         "value": "${DEPLOY_SERVICEBUS}"
       },
       "deployApimDevPortal": {
         "value": "${DEPLOY_APIM_DEV_PORTAL}"
+      },
+      "deployApiCenter": {
+        "value": "${DEPLOY_API_CENTER}"
+      },
+      "apiCenterPortalClientId": {
+        "value": "${API_CENTER_PORTAL_CLIENT_ID}"
+      },
+      "wafRateLimitThreshold": {
+        "value": "${WAF_RATE_LIMIT_THRESHOLD}"
       }
     }
 }

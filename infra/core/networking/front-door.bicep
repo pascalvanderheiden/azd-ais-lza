@@ -13,6 +13,9 @@ param wafManagedRuleSets array
 param fdManagedIdentityName string
 param tags object = {}
 
+@description('Rate limit threshold value for rate limit custom rule.')
+param rateLimitThreshold int = 100
+
 var proxyOriginGroupName = 'Proxy'
 var developerPortalOriginGroupName = 'DeveloperPortal'
 var proxyOriginName = 'ApiManagementProxy'
@@ -169,19 +172,57 @@ resource developerPortalRoute 'Microsoft.Cdn/profiles/afdEndpoints/routes@2023-0
   }
 }
 
-resource wafPolicy 'Microsoft.Network/FrontDoorWebApplicationFirewallPolicies@2022-05-01' = {
+// Define enhanced WAF variables for DDoS protection
+var frontDoorSkuName = sku
+// Use the provided managed rule sets directly (now includes Bot Manager v1.1)
+var enhancedManagedRuleSets = wafManagedRuleSets
+
+// Custom rate limiting rule for DDoS protection
+var customRateLimitRule = {
+  action: 'Block'
+  enabledState: 'Enabled'
+  matchConditions: [
+    {
+      matchValue: [
+        '0.0.0.0/0'
+      ]
+      matchVariable: 'SocketAddr'
+      negateCondition: false
+      operator: 'IPMatch'
+      transforms: []
+    }
+  ]
+  name: 'GlobalRateLimitRule'
+  priority: 100
+  rateLimitDurationInMinutes: 5
+  rateLimitThreshold: rateLimitThreshold
+  ruleType: 'RateLimitRule'
+}
+
+resource wafPolicy 'Microsoft.Network/FrontDoorWebApplicationFirewallPolicies@2024-02-01' = {
   name: wafName
   location: 'global'
   sku: {
-    name: sku
+    name: frontDoorSkuName
   }
   properties: {
+    managedRules: {
+      managedRuleSets: enhancedManagedRuleSets
+    }
+    customRules: {
+      rules: [
+        customRateLimitRule
+      ]
+    }
     policySettings: {
       enabledState: 'Enabled'
       mode: wafMode
-    }
-    managedRules: {
-      managedRuleSets: wafManagedRuleSets
+      requestBodyCheck: 'Enabled'
+      customBlockResponseBody: null
+      customBlockResponseStatusCode: 403
+      redirectUrl: null
+      javascriptChallengeExpirationInMinutes: 30
+      logScrubbing: null
     }
   }
 }
@@ -255,3 +296,4 @@ output frontDoorId string = profile.properties.frontDoorId
 output frontDoorName string = profile.name
 output frontDoorProxyEndpointHostName string = proxyEndpoint.properties.hostName
 output frontDoorDeveloperPortalEndpointHostName string = developerPortalOriginHostName != '' ? developerPortalEndpoint.properties.hostName : ''
+output frontDoorWafId string = wafPolicy.id

@@ -15,6 +15,7 @@ param privateDnsZoneNames array
 param tags object = {}
 param apimSku string
 param deployAse bool
+param deployLogicApps bool
 param deployFunctions bool
 
 var webServerFarmDelegation = [
@@ -130,7 +131,7 @@ resource apimNsg 'Microsoft.Network/networkSecurityGroups@2020-07-01' = {
   }
 }
 
-resource laNsg 'Microsoft.Network/networkSecurityGroups@2022-09-01' = if(!deployAse){
+resource laNsg 'Microsoft.Network/networkSecurityGroups@2022-09-01' = if(deployLogicApps && !deployAse){
   name: laNsgName
   location: location
   properties: {
@@ -359,7 +360,7 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
   }
 }
 
-resource laSubnet 'Microsoft.Network/virtualNetworks/subnets@2023-04-01' = if(!deployAse) {
+resource laSubnet 'Microsoft.Network/virtualNetworks/subnets@2023-04-01' = if(deployLogicApps && !deployAse) {
   name: laSubnetName
   parent: virtualNetwork
   properties: {
@@ -433,8 +434,8 @@ output apimSubnetName string = virtualNetwork::apimSubnet.name
 output apimSubnetId string = virtualNetwork::apimSubnet.id
 output aseSubnetName string = deployAse ? aseSubnet.name : ''
 output aseSubnetId string = deployAse ? aseSubnet.id : ''
-output laSubnetName string = !deployAse ? laSubnet.name : ''
-output laSubnetId string = !deployAse ? laSubnet.id : ''
+output laSubnetName string = (deployLogicApps && !deployAse) ? laSubnet!.name : ''
+output laSubnetId string = (deployLogicApps && !deployAse) ? laSubnet!.id : ''
 output functionsSubnetName string = (deployFunctions && !deployAse) ? functionsSubnet.name : ''
 output functionsSubnetId string = (deployFunctions && !deployAse) ? functionsSubnet.id : ''
 output privateEndpointSubnetName string = virtualNetwork::privateEndpointSubnet.name
